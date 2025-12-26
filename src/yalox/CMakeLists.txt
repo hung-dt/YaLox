@@ -1,5 +1,8 @@
 add_executable(yalox
     main.cpp
+    yalox.cpp
+    token.cpp
+    scanner.cpp
 )
 
 add_dependencies(yalox gen_buildtime_hpp)

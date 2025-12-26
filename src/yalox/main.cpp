@@ -1,29 +1,8 @@
-#include "version.hpp"
-#include "buildtime.hpp"
+#include "yalox.hpp"
 
 #include <iostream>
 
-namespace {
-
-/*---------------------------------------------------------------------------*/
-
-void runPrompt()
-{
-  std::cout << YALOX_NAME << " " << YALOX_VERSION << " (" << GIT_TAG << "-"
-            << GIT_COMMIT_SHA << ", " << BUILD_TIMESTAMP << ") ["
-            << COMPILER_INFO << "]\n"
-            << YALOX_DESCRIPTION << '\n';
-  for ( ;; ) {
-    std::cout << "> ";
-    std::string line;
-    if ( !std::getline(std::cin, line) ) {
-      std::cout << "Goodbye!\n";
-      break;
-    }
-  }
-}
-
-}
+using namespace lox;
 
 /*---------------------------------------------------------------------------*/
 
@@ -31,10 +10,12 @@ int main(int argc, char* argv[])
 {
   if ( argc > 2 ) {
     std::cout << "Usage: yalox [script]\n";
+    // EX_USAGE(64) - the command was used incorrectly
     std::exit(64);
   } else if ( argc == 2 ) {
+    YaLox::runScript(argv[1]);
   } else {
-    runPrompt();
+    YaLox::runPrompt();
   }
 
   return 0;
