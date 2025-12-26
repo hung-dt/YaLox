@@ -1,0 +1,21 @@
+{
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.inlayHints.enabled": "off",
+    "[cpp]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+        "editor.tabSize": 2
+    },
+    "[cmake]": {
+        "editor.tabSize": 4
+    },
+    // disable the Microsoft C/C++ Intellisense and use clangd instead
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
+    "cmake.generator": "Ninja",
+    "cmake.configureOnOpen": false,
+    // do not auto include
+    "clangd.arguments": [
+        "--header-insertion=never"
+    ]
+}

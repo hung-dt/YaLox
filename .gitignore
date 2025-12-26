@@ -39,3 +39,21 @@
 
 # debug information files
 *.dwo
+
+# IDE-specific files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.VSCodeCounter/
+
+# Temporary folders
+build/
+_build/
+temp/
+tmp/
+.cache/
+
+# CMake user specific settings
+CMakeUserPresets.json

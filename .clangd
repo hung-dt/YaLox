@@ -1,0 +1,2 @@
+CompileFlags:
+    Add: [-xc++, -std=c++20]    # treat all files as C++, C++20

@@ -1,0 +1,10 @@
+#pragma once
+
+const char* YALOX_NAME = "@PROJECT_NAME@";
+const char* YALOX_DESCRIPTION = "@PROJECT_DESCRIPTION@";
+const char* YALOX_VERSION = "@PROJECT_VERSION@";
+
+const char* GIT_TAG = "@GIT_TAG@";
+const char* GIT_COMMIT_SHA = "@GIT_COMMIT_SHA@";
+
+const char* COMPILER_INFO = "@COMPILER_INFO@";
