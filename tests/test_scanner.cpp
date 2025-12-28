@@ -51,7 +51,7 @@ TEST_CASE("scanner emits nil token with empty source")
 TEST_CASE("scanner can recognize all expected single-character and "
           "two-character tokens")
 {
-  auto scanner = Scanner("(){},.-+;*!!====<<=>>=");
+  auto scanner = Scanner("(){},.-+;*/!!====<<=>>=");
   const auto tokens = scanner.scanTokens();
 
   const auto expectedTokens = std::vector<Token>{
@@ -65,6 +65,7 @@ TEST_CASE("scanner can recognize all expected single-character and "
     Token{ TokenType::PLUS, "+", std::nullopt, 1 },
     Token{ TokenType::SEMICOLON, ";", std::nullopt, 1 },
     Token{ TokenType::STAR, "*", std::nullopt, 1 },
+    Token{ TokenType::SLASH, "/", std::nullopt, 1 },
     Token{ TokenType::BANG, "!", std::nullopt, 1 },
     Token{ TokenType::BANG_EQUAL, "!=", std::nullopt, 1 },
     Token{ TokenType::EQUAL_EQUAL, "==", std::nullopt, 1 },
@@ -179,11 +180,44 @@ TEST_CASE("scanner fails for invalid characters")
 
 /*---------------------------------------------------------------------------*/
 
+TEST_CASE("scanner ignores whitespaces")
+{
+  auto scanner = Scanner("+ -  *\t/\t true\nfalse\n\tnil \n\nfun foo();");
+  const auto tokens = scanner.scanTokens();
+  const auto expectedTokens =
+    std::vector<Token>{ Token{ TokenType::PLUS, "+", std::nullopt, 1 },
+                        Token{ TokenType::MINUS, "-", std::nullopt, 1 },
+                        Token{ TokenType::STAR, "*", std::nullopt, 1 },
+                        Token{ TokenType::SLASH, "/", std::nullopt, 1 },
+                        Token{ TokenType::TRUE, "true", true, 1 },
+                        Token{ TokenType::FALSE, "false", false, 2 },
+                        Token{ TokenType::NIL, "nil", std::nullopt, 3 },
+                        Token{ TokenType::FUN, "fun", std::nullopt, 5 },
+                        Token{ TokenType::IDENTIFIER, "foo", std::nullopt, 5 },
+                        Token{ TokenType::LEFT_PAREN, "(", std::nullopt, 5 },
+                        Token{ TokenType::RIGHT_PAREN, ")", std::nullopt, 5 },
+                        Token{ TokenType::SEMICOLON, ";", std::nullopt, 5 },
+                        Token{ TokenType::EoF, "", std::nullopt, 5 } };
+
+  CHECK(isSame(tokens, expectedTokens));
+}
+
+/*---------------------------------------------------------------------------*/
+
 TEST_CASE("scanner ignores // comment ")
 {
   SUBCASE("single line comment")
   {
     auto scanner = Scanner("// this is a comment");
+    const auto tokens = scanner.scanTokens();
+
+    CHECK(tokens.size() == 1);
+    CHECK(isSame(tokens.back(), Token{ TokenType::EoF, "", std::nullopt, 1 }));
+  }
+
+  SUBCASE("comment out a statement")
+  {
+    auto scanner = Scanner("// var a = 1;");
     const auto tokens = scanner.scanTokens();
 
     CHECK(tokens.size() == 1);
