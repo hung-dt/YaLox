@@ -65,6 +65,7 @@ def defineVisitor(file, baseName, types):
     file.write("template <typename T>\n")
     file.write(f"class {baseName}Visitor\n")
     file.write("{\npublic:\n")
+    file.write(f"  virtual ~{baseName}Visitor() = default;\n\n")
     for t in types:
         fullName = t + baseName
         file.write(f"  virtual T visit{fullName}({fullName}&) = 0;\n")
@@ -100,6 +101,7 @@ def defineAst(outputDir, baseName, types):
         f.write(f"class {baseName}\n")
         f.write("{\n")
         f.write("public:\n")
+        f.write(f"  virtual ~{baseName}() = default;\n\n")
         f.write("  virtual std::string toString(AstPrinter&) = 0;\n")
         f.write("};\n\n")
 

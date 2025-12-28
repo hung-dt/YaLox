@@ -50,7 +50,7 @@ if (MSVC)
     add_compile_options(/W4)
 else()
     # Additional warnings for other compilers like GCC or Clang
-    add_compile_options(-Wall -Wextra -Wpedantic -Wconversion)
+    add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wnon-virtual-dtor)
 endif()
 
 option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" FALSE)

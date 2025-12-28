@@ -23,6 +23,8 @@ template <typename T>
 class ExprVisitor
 {
 public:
+  virtual ~ExprVisitor() = default;
+
   virtual T visitBinaryExpr(BinaryExpr&) = 0;
   virtual T visitGroupingExpr(GroupingExpr&) = 0;
   virtual T visitLiteralExpr(LiteralExpr&) = 0;
@@ -38,6 +40,8 @@ class AstPrinter;
 class Expr
 {
 public:
+  virtual ~Expr() = default;
+
   virtual std::string toString(AstPrinter&) = 0;
 };
 
