@@ -49,7 +49,7 @@
 .VSCodeCounter/
 
 # Temporary folders
-build/
+build*/
 _build/
 temp/
 tmp/

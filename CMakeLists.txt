@@ -98,9 +98,9 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/_bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/_lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/_lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/$<CONFIG>)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/$<CONFIG>)
 
 #------------------------------------------------------------------------------
 # Import cmake modules
@@ -114,7 +114,20 @@ include(GenerateVersion)
 #include(CppCheck)
 
 #------------------------------------------------------------------------------
+# Project cmake options
+#------------------------------------------------------------------------------
+
+option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(BUILD_TESTS "Build tests" OFF)
+
+#------------------------------------------------------------------------------
 # Other project's CMakeLists.txt
 #------------------------------------------------------------------------------
 
 add_subdirectory(src)
+
+# tests
+if (BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

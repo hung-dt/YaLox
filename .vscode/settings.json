@@ -14,6 +14,9 @@
     "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
     "cmake.generator": "Ninja",
     "cmake.configureOnOpen": false,
+    "cmake.configureArgs": [
+        "-DBUILD_TESTS=ON"
+    ],
     // do not auto include
     "clangd.arguments": [
         "--header-insertion=never"
