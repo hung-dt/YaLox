@@ -3,6 +3,8 @@
 
 #include "yalox.hpp"
 #include "scanner.hpp"
+#include "parser.hpp"
+#include "astprinter.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -81,9 +83,13 @@ void YaLox::run(const std::string& source)
   Scanner scanner{ source };
   auto tokens = scanner.scanTokens();
 
-  for ( const auto& token : tokens ) {
-    std::cout << token.toString() << std::endl;
-  }
+  Parser parser{ tokens };
+  auto expression = parser.parse();
+
+  // Stop if there was a syntax error
+  if ( hadError_ ) return;
+
+  std::cout << AstPrinter().print(*expression) << std::endl;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -107,6 +113,20 @@ void YaLox::report(
   std::cerr << "[line " << line << "] Error" << where << ": " << message
             << std::endl;
   hadError_ = true;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Report an error at a given token by showing the token's location and the
+ * token itself.
+ */
+void YaLox::error(const Token& token, const std::string& message)
+{
+  if ( token.type() == TokenType::EoF ) {
+    report(token.line(), " at end", message);
+  } else {
+    report(token.line(), " at '" + token.lexeme() + "'", message);
+  }
 }
 
 }

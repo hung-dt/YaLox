@@ -48,7 +48,7 @@ public:
 class BinaryExpr : public Expr
 {
 public:
-  BinaryExpr(ExprPtr left, const Token& op, ExprPtr right);
+  BinaryExpr(ExprPtr left, Token op, ExprPtr right);
 
   std::string toString(AstPrinter&) override;
 
@@ -78,7 +78,7 @@ public:
 class LiteralExpr : public Expr
 {
 public:
-  LiteralExpr(const LoxObject& value);
+  LiteralExpr(LoxObject value);
 
   std::string toString(AstPrinter&) override;
 
@@ -92,7 +92,7 @@ public:
 class UnaryExpr : public Expr
 {
 public:
-  UnaryExpr(const Token& op, ExprPtr right);
+  UnaryExpr(Token op, ExprPtr right);
 
   std::string toString(AstPrinter&) override;
 

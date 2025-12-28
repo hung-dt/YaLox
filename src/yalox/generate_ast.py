@@ -49,9 +49,9 @@ def defineType(file, baseName, className, fieldList):
     ctor = ctor[:-2] + ")\n  : "
     for idx in range(len(fieldList)):
         if "&" not in ctorTypes[idx]:
-            ctor += f"{fieldNames[idx]}( std::move({fieldNames[idx]}) ), "
+            ctor += f"{fieldNames[idx]}(std::move({fieldNames[idx]})), "
         else:
-            ctor += f"{fieldNames[idx]}( {fieldNames[idx]} ), "
+            ctor += f"{fieldNames[idx]}({fieldNames[idx]}), "
     ctor = ctor[:-2] + "\n{\n}\n\n"
     file.write(ctor)
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
             "name": "Binary",
             "params": [
                 ["left", "ExprPtr"],
-                ["op", "const Token&", "Token"],
+                ["op", "Token"],
                 ["right", "ExprPtr"],
             ],
         },
@@ -143,13 +143,13 @@ if __name__ == "__main__":
         {
             "name": "Literal",
             "params": [
-                ["value", "const LoxObject&", "LoxObject"],
+                ["value", "LoxObject"],
             ],
         },
         {
             "name": "Unary",
             "params": [
-                ["op", "const Token&", "Token"],
+                ["op", "Token"],
                 ["right", "ExprPtr"],
             ],
         },

@@ -4,6 +4,8 @@
 
 namespace lox {
 
+class Token;
+
 /*---------------------------------------------------------------------------*/
 
 /** The tree-walk interpreter YaLox.
@@ -15,8 +17,11 @@ public:
   static void runPrompt();
 
   static void error(int line, const std::string& message);
+
   static void
   report(int line, const std::string& where, const std::string& message);
+
+  static void error(const Token& token, const std::string& message);
 
 private:
   static bool hadError_;

@@ -6,9 +6,9 @@ namespace lox {
 
 /*---------------------------------------------------------------------------*/
 
-BinaryExpr::BinaryExpr(ExprPtr left, const Token& op, ExprPtr right)
+BinaryExpr::BinaryExpr(ExprPtr left, Token op, ExprPtr right)
   : left(std::move(left))
-  , op(op)
+  , op(std::move(op))
   , right(std::move(right))
 {
 }
@@ -36,8 +36,8 @@ std::string GroupingExpr::toString(AstPrinter& printer)
 
 /*---------------------------------------------------------------------------*/
 
-LiteralExpr::LiteralExpr(const LoxObject& value)
-  : value(value)
+LiteralExpr::LiteralExpr(LoxObject value)
+  : value(std::move(value))
 {
 }
 
@@ -50,8 +50,8 @@ std::string LiteralExpr::toString(AstPrinter& printer)
 
 /*---------------------------------------------------------------------------*/
 
-UnaryExpr::UnaryExpr(const Token& op, ExprPtr right)
-  : op(op)
+UnaryExpr::UnaryExpr(Token op, ExprPtr right)
+  : op(std::move(op))
   , right(std::move(right))
 {
 }

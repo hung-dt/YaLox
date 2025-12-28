@@ -1,5 +1,7 @@
 #include "astprinter.hpp"
 
+#include <sstream>
+
 namespace lox {
 
 /*---------------------------------------------------------------------------*/
@@ -28,14 +30,20 @@ std::string AstPrinter::visitGroupingExpr(GroupingExpr& expr)
 
 std::string AstPrinter::visitLiteralExpr(LiteralExpr& expr)
 {
+  std::string literal{ "nil" };
   if ( expr.value ) {
-    if ( std::holds_alternative<double>(expr.value.value()) ) {
-      return std::to_string(std::get<double>(expr.value.value()));
+    const auto& exprValue = expr.value.value();
+    if ( std::holds_alternative<double>(exprValue) ) {
+      // use sstream to discard zeroes from fractional part of a whole number
+      std::ostringstream os;
+      os << std::get<double>(exprValue);
+      return os.str();
+    } else if ( std::holds_alternative<bool>(exprValue) ) {
+      return std::get<bool>(exprValue) ? "true" : "false";
     }
-    return std::get<std::string>(expr.value.value());
-  } else {
-    return "nil";
+    return "\"" + std::get<std::string>(exprValue) + "\"";
   }
+  return literal;
 }
 
 /*---------------------------------------------------------------------------*/
