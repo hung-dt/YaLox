@@ -2,6 +2,8 @@ add_library(yalox_lib SHARED
     yalox.cpp
     token.cpp
     scanner.cpp
+    expr.cpp
+    astprinter.cpp
 )
 
 target_include_directories(yalox_lib PRIVATE ${CMAKE_BINARY_DIR}/src)

@@ -130,6 +130,15 @@ void Scanner::scanToken()
         while ( peek() != '\n' && !isAtEnd() ) {
           current_++;
         }
+        // } else if ( match('*') ) {
+        //   // Ignore C-style comment
+        //   while ( peek() != '*' && !isAtEnd() ) {
+        //     if ( peek() == '\n' ) line_++;  // block comment
+        //     current_++;
+        //   }
+        //   if ( isAtEnd() || peekNext() != '/' ) {
+        //     YaLox::error(line_, "Unterminated comment.");
+        //   }
       } else {
         addToken(TokenType::SLASH);
       }

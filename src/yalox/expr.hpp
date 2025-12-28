@@ -1,0 +1,103 @@
+#pragma once
+
+#include "token.hpp"
+
+#include <memory>
+
+namespace lox {
+
+/*---------------------------------------------------------------------------*/
+
+// Forward declare all Expr types
+class Expr;
+class BinaryExpr;
+class GroupingExpr;
+class LiteralExpr;
+class UnaryExpr;
+
+using ExprPtr = std::unique_ptr<Expr>;
+
+/*---------------------------------------------------------------------------*/
+
+template <typename T>
+class ExprVisitor
+{
+public:
+  virtual T visitBinaryExpr(BinaryExpr&) = 0;
+  virtual T visitGroupingExpr(GroupingExpr&) = 0;
+  virtual T visitLiteralExpr(LiteralExpr&) = 0;
+  virtual T visitUnaryExpr(UnaryExpr&) = 0;
+};
+
+class AstPrinter;
+
+/*---------------------------------------------------------------------------*/
+
+/** Base class for all expression types.
+ */
+class Expr
+{
+public:
+  virtual std::string toString(AstPrinter&) = 0;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Binary expression.
+ */
+class BinaryExpr : public Expr
+{
+public:
+  BinaryExpr(ExprPtr left, const Token& op, ExprPtr right);
+
+  std::string toString(AstPrinter&) override;
+
+  ExprPtr left;
+  Token op;
+  ExprPtr right;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Grouping expression.
+ */
+class GroupingExpr : public Expr
+{
+public:
+  GroupingExpr(ExprPtr expression);
+
+  std::string toString(AstPrinter&) override;
+
+  ExprPtr expression;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Literal expression.
+ */
+class LiteralExpr : public Expr
+{
+public:
+  LiteralExpr(const LoxObject& value);
+
+  std::string toString(AstPrinter&) override;
+
+  LoxObject value;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Unary expression.
+ */
+class UnaryExpr : public Expr
+{
+public:
+  UnaryExpr(const Token& op, ExprPtr right);
+
+  std::string toString(AstPrinter&) override;
+
+  Token op;
+  ExprPtr right;
+};
+
+}  // namespace lox
