@@ -1,10 +1,14 @@
 #pragma once
 
+#include "interpreter.hpp"
+
 #include <string>
 
 namespace lox {
 
 class Token;
+
+class RuntimeError;
 
 /*---------------------------------------------------------------------------*/
 
@@ -23,7 +27,11 @@ public:
 
   static void error(const Token& token, const std::string& message);
 
+  static void runtimeError(const RuntimeError&);
+
 private:
+  static Interpreter interpreter_;
+
   static bool hadError_;
   static bool hadRuntimeError_;
 

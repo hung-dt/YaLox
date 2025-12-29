@@ -25,8 +25,9 @@ def declareType(file, baseName, className, fieldList):
     ctor = ctor[:-2] + ");\n\n"
     file.write(ctor)
 
-    # Write visitor's overriden method
+    # Write visitor's overriden methods
     file.write("  std::string toString(AstPrinter&) override;\n\n")
+    file.write("  LoxObject evaluate(Interpreter&) override;\n\n")
 
     # Write member lines
     lines = ""
@@ -59,6 +60,10 @@ def defineType(file, baseName, className, fieldList):
     file.write(f"std::string {fullName}::toString(AstPrinter& printer)\n")
     file.write(f"{{\n  return printer.visit{fullName}(*this);\n}}\n\n")
 
+    file.write("/*" + 75 * "-" + "*/\n\n")
+    file.write(f"LoxObject {fullName}::evaluate(Interpreter& interpreter)\n")
+    file.write(f"{{\n  return interpreter.visit{fullName}(*this);\n}}\n\n")
+
 
 def defineVisitor(file, baseName, types):
     file.write("/*" + 75 * "-" + "*/\n\n")
@@ -70,7 +75,10 @@ def defineVisitor(file, baseName, types):
         fullName = t + baseName
         file.write(f"  virtual T visit{fullName}({fullName}&) = 0;\n")
     file.write("};\n\n")
-    file.write("class AstPrinter;\n\n")
+    file.write("/*" + 75 * "-" + "*/\n\n")
+    file.write(f"// Forward declare {baseName}Visitor implementations\n")
+    file.write("class AstPrinter;\n")
+    file.write("class Interpreter;\n\n")
 
 
 def defineAst(outputDir, baseName, types):
@@ -102,7 +110,10 @@ def defineAst(outputDir, baseName, types):
         f.write("{\n")
         f.write("public:\n")
         f.write(f"  virtual ~{baseName}() = default;\n\n")
-        f.write("  virtual std::string toString(AstPrinter&) = 0;\n")
+        f.write(f"  // accept function for {baseName}Visitor\n")
+        f.write("  virtual std::string toString(AstPrinter&) = 0;\n\n")
+        f.write(f"  // accept function for {baseName}Visitor\n")
+        f.write("  virtual LoxObject evaluate(Interpreter&) = 0;\n\n")
         f.write("};\n\n")
 
         for idx, name in enumerate(classNames):
@@ -114,7 +125,8 @@ def defineAst(outputDir, baseName, types):
         os.path.join(outputDir, baseName.lower() + ".cpp"), "w", encoding="utf-8"
     ) as f:
         f.write(f'#include "{baseName.lower()}.hpp"\n\n')
-        f.write('#include "astprinter.hpp"\n\n')
+        f.write('#include "astprinter.hpp"\n')
+        f.write('#include "interpreter.hpp"\n\n')
         f.write("namespace lox {\n\n")
         for idx, name in enumerate(classNames):
             defineType(f, baseName, name, classFields[idx])

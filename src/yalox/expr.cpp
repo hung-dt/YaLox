@@ -1,6 +1,7 @@
 #include "expr.hpp"
 
 #include "astprinter.hpp"
+#include "interpreter.hpp"
 
 namespace lox {
 
@@ -22,6 +23,13 @@ std::string BinaryExpr::toString(AstPrinter& printer)
 
 /*---------------------------------------------------------------------------*/
 
+LoxObject BinaryExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitBinaryExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 GroupingExpr::GroupingExpr(ExprPtr expression)
   : expression(std::move(expression))
 {
@@ -32,6 +40,13 @@ GroupingExpr::GroupingExpr(ExprPtr expression)
 std::string GroupingExpr::toString(AstPrinter& printer)
 {
   return printer.visitGroupingExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject GroupingExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitGroupingExpr(*this);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -50,6 +65,13 @@ std::string LiteralExpr::toString(AstPrinter& printer)
 
 /*---------------------------------------------------------------------------*/
 
+LoxObject LiteralExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitLiteralExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 UnaryExpr::UnaryExpr(Token op, ExprPtr right)
   : op(std::move(op))
   , right(std::move(right))
@@ -61,6 +83,13 @@ UnaryExpr::UnaryExpr(Token op, ExprPtr right)
 std::string UnaryExpr::toString(AstPrinter& printer)
 {
   return printer.visitUnaryExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject UnaryExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitUnaryExpr(*this);
 }
 
 }  // namespace lox

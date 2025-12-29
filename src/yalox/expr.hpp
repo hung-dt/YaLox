@@ -31,7 +31,11 @@ public:
   virtual T visitUnaryExpr(UnaryExpr&) = 0;
 };
 
+/*---------------------------------------------------------------------------*/
+
+// Forward declare ExprVisitor implementations
 class AstPrinter;
+class Interpreter;
 
 /*---------------------------------------------------------------------------*/
 
@@ -42,7 +46,11 @@ class Expr
 public:
   virtual ~Expr() = default;
 
+  // accept function for ExprVisitor
   virtual std::string toString(AstPrinter&) = 0;
+
+  // accept function for ExprVisitor
+  virtual LoxObject evaluate(Interpreter&) = 0;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -55,6 +63,8 @@ public:
   BinaryExpr(ExprPtr left, Token op, ExprPtr right);
 
   std::string toString(AstPrinter&) override;
+
+  LoxObject evaluate(Interpreter&) override;
 
   ExprPtr left;
   Token op;
@@ -72,6 +82,8 @@ public:
 
   std::string toString(AstPrinter&) override;
 
+  LoxObject evaluate(Interpreter&) override;
+
   ExprPtr expression;
 };
 
@@ -86,6 +98,8 @@ public:
 
   std::string toString(AstPrinter&) override;
 
+  LoxObject evaluate(Interpreter&) override;
+
   LoxObject value;
 };
 
@@ -99,6 +113,8 @@ public:
   UnaryExpr(Token op, ExprPtr right);
 
   std::string toString(AstPrinter&) override;
+
+  LoxObject evaluate(Interpreter&) override;
 
   Token op;
   ExprPtr right;

@@ -5,6 +5,7 @@ add_library(yalox_lib SHARED
     expr.cpp
     parser.cpp
     astprinter.cpp
+    interpreter.cpp
 )
 
 target_include_directories(yalox_lib PRIVATE ${CMAKE_BINARY_DIR}/src)

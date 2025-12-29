@@ -1,5 +1,7 @@
 #include "token.hpp"
+
 #include <format>
+#include <sstream>
 
 namespace lox {
 
@@ -98,29 +100,34 @@ int Token::line() const
 
 /*---------------------------------------------------------------------------*/
 
+/** Stringify a token.
+ */
 std::string Token::toString() const
 {
-  std::string literal;
-  if ( literal_ ) {
-    if ( type_ == TokenType::NUMBER ) {
-      literal = std::to_string(std::get<double>(literal_.value()));
+  return std::format(
+    "{} {} {}", TokenType2String(type_), lexeme_, lox::toString(literal_));
+}
 
-      // if the lexeme has no dot in it, that means
-      // it represents an integer literal
-      if ( lexeme_.find(".") == std::string::npos ) {
-        literal = lexeme_;
-      }
-    } else if ( type_ == TokenType::STRING ) {
-      literal = std::get<std::string>(literal_.value());
-    } else {
-      // Boolean value
-      literal = std::get<bool>(literal_.value()) ? "true" : "false";
+/*---------------------------------------------------------------------------*/
+
+/** Stringify a LoxObject.
+ */
+std::string toString(const LoxObject& obj)
+{
+  std::string literal{ "nil" };
+  if ( obj ) {
+    const auto& exprValue = obj.value();
+    if ( std::holds_alternative<double>(exprValue) ) {
+      // use sstream to discard zeroes from fractional part of a whole number
+      std::ostringstream os;
+      os << std::get<double>(exprValue);
+      return os.str();
+    } else if ( std::holds_alternative<bool>(exprValue) ) {
+      return std::get<bool>(exprValue) ? "true" : "false";
     }
-  } else {
-    literal = "nil";
+    return "\"" + std::get<std::string>(exprValue) + "\"";
   }
-
-  return std::format("{} {} {}", TokenType2String(type_), lexeme_, literal);
+  return literal;
 }
 
 }

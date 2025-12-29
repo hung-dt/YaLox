@@ -65,5 +65,9 @@ private:
   const int line_;
 };
 
+/*---------------------------------------------------------------------------*/
+
+std::string toString(const LoxObject&);
+
 }
 

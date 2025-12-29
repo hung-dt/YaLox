@@ -4,7 +4,7 @@
 #include "yalox.hpp"
 #include "scanner.hpp"
 #include "parser.hpp"
-#include "astprinter.hpp"
+// #include "astprinter.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -12,6 +12,8 @@
 namespace lox {
 
 /*---------------------------------------------------------------------------*/
+
+Interpreter YaLox::interpreter_ = Interpreter{};
 
 bool YaLox::hadError_ = false;
 
@@ -89,7 +91,9 @@ void YaLox::run(const std::string& source)
   // Stop if there was a syntax error
   if ( hadError_ ) return;
 
-  std::cout << AstPrinter().print(*expression) << std::endl;
+  // std::cout << AstPrinter().print(*expression) << std::endl;
+  auto value = interpreter_.interpret(*expression);
+  std::cout << toString(value) << '\n';
 }
 
 /*---------------------------------------------------------------------------*/
@@ -99,6 +103,14 @@ void YaLox::run(const std::string& source)
 void YaLox::error(int line, const std::string& message)
 {
   report(line, "", message);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void YaLox::runtimeError(const RuntimeError& error)
+{
+  std::cerr << error.what() << "\n[line " << error.token.line() << "]\n";
+  hadRuntimeError_ = true;
 }
 
 /*---------------------------------------------------------------------------*/
