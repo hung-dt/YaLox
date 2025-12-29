@@ -72,16 +72,19 @@ LoxObject Interpreter::visitBinaryExpr(BinaryExpr& expr)
       validateNumberOperands(expr.op, left, right);
       return std::get<double>(left.value()) - std::get<double>(right.value());
     case TokenType::PLUS: {
-      if (
-        std::holds_alternative<std::string>(left.value()) &&
-        std::holds_alternative<std::string>(right.value()) ) {
-        return std::get<std::string>(left.value()) +
-               std::get<std::string>(right.value());
-      }
-      if (
-        std::holds_alternative<double>(left.value()) &&
-        std::holds_alternative<double>(right.value()) ) {
-        return std::get<double>(left.value()) + std::get<double>(right.value());
+      if ( left && right ) {
+        if (
+          std::holds_alternative<std::string>(left.value()) &&
+          std::holds_alternative<std::string>(right.value()) ) {
+          return std::get<std::string>(left.value()) +
+                 std::get<std::string>(right.value());
+        }
+        if (
+          std::holds_alternative<double>(left.value()) &&
+          std::holds_alternative<double>(right.value()) ) {
+          return std::get<double>(left.value()) +
+                 std::get<double>(right.value());
+        }
       }
 
       throw RuntimeError(
@@ -143,7 +146,7 @@ LoxObject Interpreter::visitUnaryExpr(UnaryExpr& expr)
 
   switch ( expr.op.type() ) {
     case TokenType::BANG:
-      return !isTruthy(right.value());
+      return !isTruthy(right);
     case TokenType::MINUS:
       validateNumberOperand(expr.op, right);
       return -(std::get<double>(right.value()));
@@ -163,7 +166,7 @@ void Interpreter::validateNumberOperand(
   const Token& op,
   const LoxObject& operand) const
 {
-  if ( std::holds_alternative<double>(operand.value()) ) return;
+  if ( operand && std::holds_alternative<double>(operand.value()) ) return;
 
   throw RuntimeError(op, "Operand must be a number.");
 }
@@ -178,7 +181,7 @@ void Interpreter::validateNumberOperands(
   const LoxObject& right) const
 {
   if (
-    std::holds_alternative<double>(left.value()) &&
+    left && right && std::holds_alternative<double>(left.value()) &&
     std::holds_alternative<double>(right.value()) )
     return;
 
