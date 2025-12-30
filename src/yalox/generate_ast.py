@@ -219,5 +219,14 @@ if __name__ == "__main__":
         {"name": "Print", "params": [["expression", "ExprPtr"]]},
         {"name": "Var", "params": [["name", "Token"], ["initializer", "ExprPtr"]]},
         {"name": "While", "params": [["condition", "ExprPtr"], ["body", "StmtPtr"]]},
+        {
+            "name": "For",
+            "params": [
+                ["initializer", "StmtPtr"],
+                ["condition", "ExprPtr"],
+                ["increment", "ExprPtr"],
+                ["body", "StmtPtr"],
+            ],
+        },
     ]
     defineAst(outputDir, "Stmt", stmtTypes)

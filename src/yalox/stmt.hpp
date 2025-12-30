@@ -17,6 +17,7 @@ class IfStmt;
 class PrintStmt;
 class VarStmt;
 class WhileStmt;
+class ForStmt;
 
 using StmtPtr = std::unique_ptr<Stmt>;
 
@@ -34,6 +35,7 @@ public:
   virtual T visitPrintStmt(PrintStmt&) = 0;
   virtual T visitVarStmt(VarStmt&) = 0;
   virtual T visitWhileStmt(WhileStmt&) = 0;
+  virtual T visitForStmt(ForStmt&) = 0;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -137,4 +139,24 @@ public:
   StmtPtr body;
 };
 
+/*---------------------------------------------------------------------------*/
+
+/** For statement.
+ */
+class ForStmt : public Stmt
+{
+public:
+  ForStmt(
+    StmtPtr initializer,
+    ExprPtr condition,
+    ExprPtr increment,
+    StmtPtr body);
+
+  void execute(Interpreter&) override;
+
+  StmtPtr initializer;
+  ExprPtr condition;
+  ExprPtr increment;
+  StmtPtr body;
+};
 }  // namespace lox

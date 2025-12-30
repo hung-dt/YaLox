@@ -390,6 +390,7 @@ StmtPtr Parser::forStmt()
 
   StmtPtr body = statement();
 
+#if 0
   // If there is an increment, it is executed after the body in each iteration
   if ( increment ) {
     std::vector<StmtPtr> block{};
@@ -413,6 +414,13 @@ StmtPtr Parser::forStmt()
   }
 
   return body;
+#else
+  return std::make_unique<ForStmt>(
+    std::move(initializer),
+    std::move(condition),
+    std::move(increment),
+    std::move(body));
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

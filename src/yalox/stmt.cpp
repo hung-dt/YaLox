@@ -92,4 +92,25 @@ void WhileStmt::execute(Interpreter& interpreter)
   interpreter.visitWhileStmt(*this);
 }
 
+/*---------------------------------------------------------------------------*/
+
+ForStmt::ForStmt(
+  StmtPtr initializer,
+  ExprPtr condition,
+  ExprPtr increment,
+  StmtPtr body)
+  : initializer(std::move(initializer))
+  , condition(std::move(condition))
+  , increment(std::move(increment))
+  , body(std::move(body))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ForStmt::execute(Interpreter& interpreter)
+{
+  interpreter.visitForStmt(*this);
+}
+
 }  // namespace lox

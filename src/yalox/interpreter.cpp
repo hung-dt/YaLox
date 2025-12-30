@@ -1,6 +1,7 @@
 #include "interpreter.hpp"
 #include "yalox.hpp"
 
+#include <cassert>
 #include <iostream>
 
 namespace lox {
@@ -338,6 +339,32 @@ void Interpreter::visitWhileStmt(WhileStmt& stmt)
 {
   while ( isTruthy(evaluate(*(stmt.condition))) ) {
     stmt.body->execute(*this);
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Execute the for statement as a while loop.
+ */
+void Interpreter::visitForStmt(ForStmt& stmt)
+{
+  if ( stmt.initializer ) {
+    stmt.initializer->execute(*this);
+  }
+
+  while ( true ) {
+    if ( stmt.condition ) {
+      auto condition = evaluate(*(stmt.condition));
+      if ( !isTruthy(condition) ) break;
+    }
+
+    // Lox requires a body in for loop so no need to check for null here
+    assert(stmt.body);
+    stmt.body->execute(*this);
+
+    if ( stmt.increment ) {
+      evaluate(*(stmt.increment));
+    }
   }
 }
 

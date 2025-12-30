@@ -41,6 +41,7 @@ public:
   void visitPrintStmt(PrintStmt&) override;
   void visitVarStmt(VarStmt&) override;
   void visitWhileStmt(WhileStmt&) override;
+  void visitForStmt(ForStmt&) override;
 
 private:
   EnvSPtr env_;
