@@ -31,13 +31,16 @@ public:
   LoxObject visitBinaryExpr(BinaryExpr&) override;
   LoxObject visitGroupingExpr(GroupingExpr&) override;
   LoxObject visitLiteralExpr(LiteralExpr&) override;
+  LoxObject visitLogicalExpr(LogicalExpr&) override;
   LoxObject visitUnaryExpr(UnaryExpr&) override;
   LoxObject visitVariableExpr(VariableExpr&) override;
 
   void visitBlockStmt(BlockStmt&) override;
   void visitExprStmt(ExprStmt&) override;
+  void visitIfStmt(IfStmt&) override;
   void visitPrintStmt(PrintStmt&) override;
   void visitVarStmt(VarStmt&) override;
+  void visitWhileStmt(WhileStmt&) override;
 
 private:
   EnvSPtr env_;

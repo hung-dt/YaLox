@@ -229,6 +229,25 @@ LoxObject Interpreter::visitLiteralExpr(LiteralExpr& expr)
 
 /*---------------------------------------------------------------------------*/
 
+/** Evaluate logical expression.
+ */
+LoxObject Interpreter::visitLogicalExpr(LogicalExpr& expr)
+{
+  auto left = evaluate(*(expr.left));
+
+  if ( expr.op.type() == TokenType::OR ) {
+    // short circuit for OR op
+    if ( isTruthy(left) ) return left;
+  } else {
+    // short circuit for AND op
+    if ( !isTruthy(left) ) return left;
+  }
+
+  return evaluate(*(expr.right));
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject Interpreter::visitUnaryExpr(UnaryExpr& expr)
 {
   auto right = evaluate(*(expr.right));
@@ -275,6 +294,19 @@ void Interpreter::visitExprStmt(ExprStmt& stmt)
 
 /*---------------------------------------------------------------------------*/
 
+/** Execute if statement.
+ */
+void Interpreter::visitIfStmt(IfStmt& stmt)
+{
+  if ( isTruthy(evaluate(*(stmt.condition))) ) {
+    stmt.thenBranch->execute(*this);
+  } else if ( stmt.elseBranch ) {
+    stmt.elseBranch->execute(*this);
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void Interpreter::visitPrintStmt(PrintStmt& stmt)
 {
   auto value = evaluate(*(stmt.expression));
@@ -296,6 +328,17 @@ void Interpreter::visitVarStmt(VarStmt& stmt)
   }
 
   env_->define(stmt.name.lexeme(), value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Execute the while statement.
+ */
+void Interpreter::visitWhileStmt(WhileStmt& stmt)
+{
+  while ( isTruthy(evaluate(*(stmt.condition))) ) {
+    stmt.body->execute(*this);
+  }
 }
 
 /*---------------------------------------------------------------------------*/

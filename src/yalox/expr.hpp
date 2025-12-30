@@ -14,6 +14,7 @@ class AssignExpr;
 class BinaryExpr;
 class GroupingExpr;
 class LiteralExpr;
+class LogicalExpr;
 class UnaryExpr;
 class VariableExpr;
 
@@ -31,6 +32,7 @@ public:
   virtual T visitBinaryExpr(BinaryExpr&) = 0;
   virtual T visitGroupingExpr(GroupingExpr&) = 0;
   virtual T visitLiteralExpr(LiteralExpr&) = 0;
+  virtual T visitLogicalExpr(LogicalExpr&) = 0;
   virtual T visitUnaryExpr(UnaryExpr&) = 0;
   virtual T visitVariableExpr(VariableExpr&) = 0;
 };
@@ -122,6 +124,24 @@ public:
   LoxObject evaluate(Interpreter&) override;
 
   LoxObject value;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Logical expression.
+ */
+class LogicalExpr : public Expr
+{
+public:
+  LogicalExpr(ExprPtr left, Token op, ExprPtr right);
+
+  std::string toString(AstPrinter&) override;
+
+  LoxObject evaluate(Interpreter&) override;
+
+  ExprPtr left;
+  Token op;
+  ExprPtr right;
 };
 
 /*---------------------------------------------------------------------------*/

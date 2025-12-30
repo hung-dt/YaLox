@@ -53,12 +53,12 @@ ExprPtr Parser::expression()
 
 /*---------------------------------------------------------------------------*/
 
-/** assignment -> IDENTIFIER "=" assignment | equality ;
+/** assignment -> IDENTIFIER "=" assignment | logic_or ;
  */
 ExprPtr Parser::assignment()
 {
   // parse the left-hand side, which can be any expression of higher precedence.
-  ExprPtr expr = equality();
+  ExprPtr expr = logicOr();
 
   if ( match({ TokenType::EQUAL }) ) {
     auto equals = previous();
@@ -72,6 +72,42 @@ ExprPtr Parser::assignment()
     }
 
     error(equals, "Invalid assignment target.");
+  }
+
+  return expr;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** logic_or -> logic_and ( "or" logic_and )* ;
+ */
+ExprPtr Parser::logicOr()
+{
+  ExprPtr expr = logicAnd();
+
+  while ( match({ TokenType::OR }) ) {
+    Token op = previous();
+    ExprPtr right = logicAnd();
+    expr = std::make_unique<LogicalExpr>(
+      std::move(expr), std::move(op), std::move(right));
+  }
+
+  return expr;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** logic_and -> equality ( "and" equality )* ;
+ */
+ExprPtr Parser::logicAnd()
+{
+  ExprPtr expr = equality();
+
+  while ( match({ TokenType::AND }) ) {
+    Token op = previous();
+    ExprPtr right = equality();
+    expr = std::make_unique<LogicalExpr>(
+      std::move(expr), std::move(op), std::move(right));
   }
 
   return expr;
@@ -249,12 +285,24 @@ StmtPtr Parser::varDecl()
 
 /*---------------------------------------------------------------------------*/
 
-/** statement -> exprStmt | printStmt | block ;
+/** statement -> exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
  */
 StmtPtr Parser::statement()
 {
+  if ( match({ TokenType::FOR }) ) {
+    return forStmt();
+  }
+
+  if ( match({ TokenType::IF }) ) {
+    return ifStmt();
+  }
+
   if ( match({ TokenType::PRINT }) ) {
     return printStmt();
+  }
+
+  if ( match({ TokenType::WHILE }) ) {
+    return whileStmt();
   }
 
   if ( match({ TokenType::LEFT_BRACE }) ) {
@@ -266,6 +314,26 @@ StmtPtr Parser::statement()
 
 /*---------------------------------------------------------------------------*/
 
+/** ifStmt -> "if" "(" expression ")" statement ( "else" statement )? ;
+ */
+StmtPtr Parser::ifStmt()
+{
+  consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
+  ExprPtr condition = expression();
+  consume(TokenType::RIGHT_BRACE, "Expect ')' after if condition.");
+
+  StmtPtr thenBranch = statement();
+  StmtPtr elseBranch{};
+  if ( match({ TokenType::ELSE }) ) {
+    elseBranch = statement();
+  }
+
+  return std::make_unique<IfStmt>(
+    std::move(condition), std::move(thenBranch), std::move(elseBranch));
+}
+
+/*---------------------------------------------------------------------------*/
+
 /** printStmt -> "print" expression ";"
  */
 StmtPtr Parser::printStmt()
@@ -273,6 +341,78 @@ StmtPtr Parser::printStmt()
   auto value = expression();
   consume(TokenType::SEMICOLON, "Expect ';' after value.");
   return std::make_unique<PrintStmt>(std::move(value));
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** whileStmt -> "while" "(" expression ")" statement ;
+ */
+StmtPtr Parser::whileStmt()
+{
+  consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
+  ExprPtr condition = expression();
+  consume(TokenType::RIGHT_PAREN, "Expect ')' after condition.");
+  StmtPtr body = statement();
+
+  return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** forStmt -> "for" "(" ( varDecl | exprStmt | ";" )
+                 expression? ";"
+                 expression? ")" statement ;
+
+  Implement for stmt as a while stmt.
+ */
+StmtPtr Parser::forStmt()
+{
+  consume(TokenType::LEFT_PAREN, "Expect '(' after 'for'.");
+
+  StmtPtr initializer{};
+  if ( match({ TokenType::VAR }) ) {
+    initializer = varDecl();
+  } else {
+    initializer = exprStmt();
+  }
+
+  ExprPtr condition{};
+  if ( !check(TokenType::SEMICOLON) ) {
+    condition = expression();
+  }
+  consume(TokenType::SEMICOLON, "Expect ';' after for loop condition.");
+
+  ExprPtr increment{};
+  if ( !check(TokenType::RIGHT_PAREN) ) {
+    increment = expression();
+  }
+  consume(TokenType::RIGHT_PAREN, "Expect ')' after 'for' clauses.");
+
+  StmtPtr body = statement();
+
+  // If there is an increment, it is executed after the body in each iteration
+  if ( increment ) {
+    std::vector<StmtPtr> block{};
+    block.emplace_back(std::move(body));
+    block.emplace_back(std::make_unique<ExprStmt>(std::move(increment)));
+    body = std::make_unique<BlockStmt>(std::move(block));
+  }
+
+  // If the condition is omitted, we jam in true to make an infinite loop.
+  if ( !condition ) {
+    condition = std::make_unique<LiteralExpr>(LoxObject{ true });
+  }
+  body = std::make_unique<WhileStmt>(std::move(condition), std::move(body));
+
+  // if there is an initializer, it runs once before the entire loop.
+  if ( initializer ) {
+    std::vector<StmtPtr> block{};
+    block.emplace_back(std::move(initializer));
+    block.emplace_back(std::move(body));
+    body = std::make_unique<BlockStmt>(std::move(block));
+  }
+
+  return body;
 }
 
 /*---------------------------------------------------------------------------*/

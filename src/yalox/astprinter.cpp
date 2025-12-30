@@ -33,6 +33,14 @@ std::string AstPrinter::visitLiteralExpr(LiteralExpr& expr)
 
 /*---------------------------------------------------------------------------*/
 
+std::string AstPrinter::visitLogicalExpr(LogicalExpr& expr)
+{
+  return "(" + expr.op.lexeme() + " " + expr.left->toString(*this) + " " +
+         expr.right->toString(*this) + ")";
+}
+
+/*---------------------------------------------------------------------------*/
+
 std::string AstPrinter::visitUnaryExpr(UnaryExpr& expr)
 {
   return "(" + expr.op.lexeme() + " " + expr.right->toString(*this) + ")";

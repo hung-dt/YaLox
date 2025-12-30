@@ -14,6 +14,7 @@ public:
   std::string print(Expr&);
 
   virtual std::string visitLiteralExpr(LiteralExpr&) override;
+  virtual std::string visitLogicalExpr(LogicalExpr&) override;
   virtual std::string visitGroupingExpr(GroupingExpr&) override;
   virtual std::string visitUnaryExpr(UnaryExpr&) override;
   virtual std::string visitBinaryExpr(BinaryExpr&) override;

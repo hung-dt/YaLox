@@ -37,6 +37,8 @@ private:
   // Grammar rules for expressions
   ExprPtr expression();
   ExprPtr assignment();
+  ExprPtr logicOr();
+  ExprPtr logicAnd();
   ExprPtr equality();
   ExprPtr comparison();
   ExprPtr term();
@@ -48,7 +50,10 @@ private:
   StmtPtr declaration();
   StmtPtr varDecl();
   StmtPtr statement();
+  StmtPtr ifStmt();
   StmtPtr printStmt();
+  StmtPtr whileStmt();
+  StmtPtr forStmt();
   StmtPtr exprStmt();
   StmtPtr block();
 

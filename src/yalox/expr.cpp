@@ -94,6 +94,29 @@ LoxObject LiteralExpr::evaluate(Interpreter& interpreter)
 
 /*---------------------------------------------------------------------------*/
 
+LogicalExpr::LogicalExpr(ExprPtr left, Token op, ExprPtr right)
+  : left(std::move(left))
+  , op(std::move(op))
+  , right(std::move(right))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string LogicalExpr::toString(AstPrinter& printer)
+{
+  return printer.visitLogicalExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject LogicalExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitLogicalExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 UnaryExpr::UnaryExpr(Token op, ExprPtr right)
   : op(std::move(op))
   , right(std::move(right))

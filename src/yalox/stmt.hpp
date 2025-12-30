@@ -13,8 +13,10 @@ namespace lox {
 class Stmt;
 class BlockStmt;
 class ExprStmt;
+class IfStmt;
 class PrintStmt;
 class VarStmt;
+class WhileStmt;
 
 using StmtPtr = std::unique_ptr<Stmt>;
 
@@ -28,8 +30,10 @@ public:
 
   virtual T visitBlockStmt(BlockStmt&) = 0;
   virtual T visitExprStmt(ExprStmt&) = 0;
+  virtual T visitIfStmt(IfStmt&) = 0;
   virtual T visitPrintStmt(PrintStmt&) = 0;
   virtual T visitVarStmt(VarStmt&) = 0;
+  virtual T visitWhileStmt(WhileStmt&) = 0;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -75,6 +79,22 @@ public:
 
 /*---------------------------------------------------------------------------*/
 
+/** If statement.
+ */
+class IfStmt : public Stmt
+{
+public:
+  IfStmt(ExprPtr condition, StmtPtr thenBranch, StmtPtr elseBranch);
+
+  void execute(Interpreter&) override;
+
+  ExprPtr condition;
+  StmtPtr thenBranch;
+  StmtPtr elseBranch;
+};
+
+/*---------------------------------------------------------------------------*/
+
 /** Print statement.
  */
 class PrintStmt : public Stmt
@@ -100,6 +120,21 @@ public:
 
   Token name;
   ExprPtr initializer;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** While statement.
+ */
+class WhileStmt : public Stmt
+{
+public:
+  WhileStmt(ExprPtr condition, StmtPtr body);
+
+  void execute(Interpreter&) override;
+
+  ExprPtr condition;
+  StmtPtr body;
 };
 
 }  // namespace lox

@@ -187,6 +187,14 @@ if __name__ == "__main__":
             ],
         },
         {
+            "name": "Logical",
+            "params": [
+                ["left", "ExprPtr"],
+                ["op", "Token"],
+                ["right", "ExprPtr"],
+            ],
+        },
+        {
             "name": "Unary",
             "params": [
                 ["op", "Token"],
@@ -200,7 +208,16 @@ if __name__ == "__main__":
     stmtTypes = [
         {"name": "Block", "params": [["statements", "std::vector<StmtPtr>"]]},
         {"name": "Expr", "params": [["expression", "ExprPtr"]]},
+        {
+            "name": "If",
+            "params": [
+                ["condition", "ExprPtr"],
+                ["thenBranch", "StmtPtr"],
+                ["elseBranch", "StmtPtr"],
+            ],
+        },
         {"name": "Print", "params": [["expression", "ExprPtr"]]},
         {"name": "Var", "params": [["name", "Token"], ["initializer", "ExprPtr"]]},
+        {"name": "While", "params": [["condition", "ExprPtr"], ["body", "StmtPtr"]]},
     ]
     defineAst(outputDir, "Stmt", stmtTypes)
