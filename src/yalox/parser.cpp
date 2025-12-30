@@ -1,5 +1,4 @@
 #include "parser.hpp"
-
 #include "yalox.hpp"
 
 namespace lox {
@@ -28,13 +27,54 @@ ExprPtr Parser::parse()
 
 /*---------------------------------------------------------------------------*/
 
+/** program -> declaration* EoF ;
+ */
+std::vector<StmtPtr> Parser::parse2()
+{
+  std::vector<StmtPtr> statements{};
+
+  while ( !isAtEnd() ) {
+    statements.emplace_back(declaration());
+  }
+
+  return statements;
+}
+
+/*---------------------------------------------------------------------------*/
+
 /** The epxression rule:
  *
- * expression -> equality ;
+ * expression -> assignment ;
  */
 ExprPtr Parser::expression()
 {
-  return equality();
+  return assignment();
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** assignment -> IDENTIFIER "=" assignment | equality ;
+ */
+ExprPtr Parser::assignment()
+{
+  // parse the left-hand side, which can be any expression of higher precedence.
+  ExprPtr expr = equality();
+
+  if ( match({ TokenType::EQUAL }) ) {
+    auto equals = previous();
+    ExprPtr value = assignment();
+
+    // if the left-hand side expression is a valid assignment target
+    auto varExpr = dynamic_cast<VariableExpr*>(expr.get());
+    if ( varExpr ) {
+      Token name = varExpr->name;
+      return std::make_unique<AssignExpr>(std::move(name), std::move(value));
+    }
+
+    error(equals, "Invalid assignment target.");
+  }
+
+  return expr;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -141,7 +181,8 @@ ExprPtr Parser::unary()
 
 /** The primary rule:
  *
- * primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+ * primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" |
+ * IDENTIFIER ;
  */
 ExprPtr Parser::primary()
 {
@@ -158,6 +199,10 @@ ExprPtr Parser::primary()
     return std::make_unique<LiteralExpr>(previous().literal());
   }
 
+  if ( match({ TokenType::IDENTIFIER }) ) {
+    return std::make_unique<VariableExpr>(previous());
+  }
+
   // handle parentheses for grouping expression
   if ( match({ TokenType::LEFT_PAREN }) ) {
     auto expr = expression();
@@ -166,6 +211,95 @@ ExprPtr Parser::primary()
   }
 
   throw error(peek(), "Expect expression.");
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** declaration -> varDecl | statement ;
+ */
+StmtPtr Parser::declaration()
+{
+  try {
+    if ( match({ TokenType::VAR }) ) {
+      return varDecl();
+    }
+    return statement();
+  } catch ( const ParserError& error ) {
+    synchronize();
+  }
+  return nullptr;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** varDecl -> "var" IDENTIFIER ( "=" expression )? ";" ;
+ */
+StmtPtr Parser::varDecl()
+{
+  Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+
+  ExprPtr initializer{};
+  if ( match({ TokenType::EQUAL }) ) {
+    initializer = expression();
+  }
+
+  consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
+  return std::make_unique<VarStmt>(std::move(name), std::move(initializer));
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** statement -> exprStmt | printStmt | block ;
+ */
+StmtPtr Parser::statement()
+{
+  if ( match({ TokenType::PRINT }) ) {
+    return printStmt();
+  }
+
+  if ( match({ TokenType::LEFT_BRACE }) ) {
+    return block();
+  }
+
+  return exprStmt();
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** printStmt -> "print" expression ";"
+ */
+StmtPtr Parser::printStmt()
+{
+  auto value = expression();
+  consume(TokenType::SEMICOLON, "Expect ';' after value.");
+  return std::make_unique<PrintStmt>(std::move(value));
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** exprStmt -> expression ";" ;
+ */
+StmtPtr Parser::exprStmt()
+{
+  auto expr = expression();
+  consume(TokenType::SEMICOLON, "Expect ';' after expression.");
+  return std::make_unique<ExprStmt>(std::move(expr));
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** block -> "{" declaration* "}" ;
+ */
+StmtPtr Parser::block()
+{
+  std::vector<StmtPtr> statements{};
+
+  while ( !check(TokenType::RIGHT_BRACE) && !isAtEnd() ) {
+    statements.emplace_back(declaration());
+  }
+
+  consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
+  return std::make_unique<BlockStmt>(std::move(statements));
 }
 
 /*---------------------------------------------------------------------------*/

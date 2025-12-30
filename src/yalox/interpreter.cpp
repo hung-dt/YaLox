@@ -1,8 +1,48 @@
 #include "interpreter.hpp"
-
 #include "yalox.hpp"
 
+#include <iostream>
+
 namespace lox {
+
+/*---------------------------------------------------------------------------*/
+
+/** Execute a block statement in the context of a given environment.
+ */
+class BlockExecutor
+{
+public:
+  BlockExecutor(
+    const std::vector<StmtPtr>& statements,
+    Interpreter& intpr,
+    const EnvSPtr& env)
+    : statements_(statements)
+    , intpr_(intpr)
+    , prev_(intpr.environment())  // back up the current env
+  {
+    // set the new env
+    intpr.environment(env);
+  }
+
+  // execute statements in block
+  void operator()()
+  {
+    for ( auto& stmt : statements_ ) {
+      stmt->execute(intpr_);
+    }
+  }
+
+  // restore the current env when done or exception was thrown
+  ~BlockExecutor()
+  {
+    intpr_.environment(prev_);
+  }
+
+private:
+  const std::vector<StmtPtr>& statements_;
+  Interpreter& intpr_;
+  const EnvSPtr prev_;
+};
 
 /*---------------------------------------------------------------------------*/
 
@@ -42,6 +82,13 @@ bool operator==(const LoxObject& left, const LoxObject& right)
 
 /*---------------------------------------------------------------------------*/
 
+Interpreter::Interpreter()
+  : env_(std::make_shared<Environment>())
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject Interpreter::interpret(Expr& expr)
 {
   try {
@@ -55,9 +102,51 @@ LoxObject Interpreter::interpret(Expr& expr)
 
 /*---------------------------------------------------------------------------*/
 
+/** Execute a Lox program.
+ */
+void Interpreter::interpret(const std::vector<StmtPtr>& program)
+{
+  try {
+    for ( const auto& stmt : program ) {
+      stmt->execute(*this);
+    }
+  } catch ( const RuntimeError& error ) {
+    YaLox::runtimeError(error);
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Get current environment.
+ */
+const EnvSPtr& Interpreter::environment() const
+{
+  return env_;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Set new environment.
+ */
+void Interpreter::environment(const EnvSPtr& env)
+{
+  env_ = env;
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject Interpreter::evaluate(Expr& expr)
 {
   return expr.evaluate(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject Interpreter::visitAssignExpr(AssignExpr& expr)
+{
+  LoxObject value = evaluate(*(expr.value));
+  env_->assign(expr.name, value);
+  return value;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -156,6 +245,57 @@ LoxObject Interpreter::visitUnaryExpr(UnaryExpr& expr)
 
   // unreachable
   return {};
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Evaluate a variable expression.
+ */
+LoxObject Interpreter::visitVariableExpr(VariableExpr& expr)
+{
+  return env_->get(expr.name);
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Execute block statement.
+ */
+void Interpreter::visitBlockStmt(BlockStmt& stmt)
+{
+  // execute the block in a new env whose outer scope is the current env.
+  BlockExecutor(stmt.statements, *this, std::make_shared<Environment>(env_))();
+}
+
+/*---------------------------------------------------------------------------*/
+
+void Interpreter::visitExprStmt(ExprStmt& stmt)
+{
+  evaluate(*(stmt.expression));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void Interpreter::visitPrintStmt(PrintStmt& stmt)
+{
+  auto value = evaluate(*(stmt.expression));
+  std::cout << toString(value) << '\n';
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Execute the variable declaration statement.
+ *
+ * If the variable has an initiliazer, we evaluate it. If not, we set it to nil.
+ * Then we tell the environment to bind the variable to that value.
+ */
+void Interpreter::visitVarStmt(VarStmt& stmt)
+{
+  LoxObject value{};
+  if ( stmt.initializer ) {
+    value = evaluate(*(stmt.initializer));
+  }
+
+  env_->define(stmt.name.lexeme(), value);
 }
 
 /*---------------------------------------------------------------------------*/

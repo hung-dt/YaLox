@@ -7,6 +7,28 @@ namespace lox {
 
 /*---------------------------------------------------------------------------*/
 
+AssignExpr::AssignExpr(Token name, ExprPtr value)
+  : name(std::move(name))
+  , value(std::move(value))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string AssignExpr::toString(AstPrinter& printer)
+{
+  return printer.visitAssignExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject AssignExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitAssignExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 BinaryExpr::BinaryExpr(ExprPtr left, Token op, ExprPtr right)
   : left(std::move(left))
   , op(std::move(op))
@@ -90,6 +112,27 @@ std::string UnaryExpr::toString(AstPrinter& printer)
 LoxObject UnaryExpr::evaluate(Interpreter& interpreter)
 {
   return interpreter.visitUnaryExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+VariableExpr::VariableExpr(Token name)
+  : name(std::move(name))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string VariableExpr::toString(AstPrinter& printer)
+{
+  return printer.visitVariableExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject VariableExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitVariableExpr(*this);
 }
 
 }  // namespace lox

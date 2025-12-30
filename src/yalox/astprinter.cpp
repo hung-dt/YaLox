@@ -38,4 +38,18 @@ std::string AstPrinter::visitUnaryExpr(UnaryExpr& expr)
   return "(" + expr.op.lexeme() + " " + expr.right->toString(*this) + ")";
 }
 
+/*---------------------------------------------------------------------------*/
+
+std::string AstPrinter::visitVariableExpr(VariableExpr& expr)
+{
+  return "(var " + expr.name.lexeme() + ")";
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string AstPrinter::visitAssignExpr(AssignExpr& expr)
+{
+  return "(= " + expr.name.lexeme() + " " + expr.value->toString(*this) + ")";
+}
+
 }

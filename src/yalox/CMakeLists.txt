@@ -3,8 +3,10 @@ add_library(yalox_lib SHARED
     token.cpp
     scanner.cpp
     expr.cpp
+    stmt.cpp
     parser.cpp
     astprinter.cpp
+    environment.cpp
     interpreter.cpp
 )
 

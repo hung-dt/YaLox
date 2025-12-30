@@ -12,6 +12,13 @@ class RuntimeError;
 
 /*---------------------------------------------------------------------------*/
 
+// Some error codes that match with sysexits.h
+inline const int ERR_USAGE = 64;     // command line usage error
+inline const int ERR_DATAERR = 65;   // data format error
+inline const int ERR_SOFTWARE = 70;  // internal software error
+
+/*---------------------------------------------------------------------------*/
+
 /** The tree-walk interpreter YaLox.
  */
 class YaLox

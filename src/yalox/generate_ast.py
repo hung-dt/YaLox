@@ -5,7 +5,10 @@ import os
 def declareType(file, baseName, className, fieldList):
     fullName = className + baseName
     file.write("/*" + 75 * "-" + "*/\n\n")
-    file.write(f"/** {className} expression.\n */\n")
+    if baseName == "Expr":
+        file.write(f"/** {className} expression.\n */\n")
+    else:
+        file.write(f"/** {className} statement.\n */\n")
     file.write(f"class {fullName} : public {baseName}\n")
     file.write("{\npublic:\n")
 
@@ -26,8 +29,11 @@ def declareType(file, baseName, className, fieldList):
     file.write(ctor)
 
     # Write visitor's overriden methods
-    file.write("  std::string toString(AstPrinter&) override;\n\n")
-    file.write("  LoxObject evaluate(Interpreter&) override;\n\n")
+    if baseName == "Expr":
+        file.write("  std::string toString(AstPrinter&) override;\n\n")
+        file.write("  LoxObject evaluate(Interpreter&) override;\n\n")
+    else:
+        file.write("  void execute(Interpreter&) override;\n\n")
 
     # Write member lines
     lines = ""
@@ -56,13 +62,18 @@ def defineType(file, baseName, className, fieldList):
     ctor = ctor[:-2] + "\n{\n}\n\n"
     file.write(ctor)
 
-    file.write("/*" + 75 * "-" + "*/\n\n")
-    file.write(f"std::string {fullName}::toString(AstPrinter& printer)\n")
-    file.write(f"{{\n  return printer.visit{fullName}(*this);\n}}\n\n")
+    if baseName == "Expr":
+        file.write("/*" + 75 * "-" + "*/\n\n")
+        file.write(f"std::string {fullName}::toString(AstPrinter& printer)\n")
+        file.write(f"{{\n  return printer.visit{fullName}(*this);\n}}\n\n")
 
-    file.write("/*" + 75 * "-" + "*/\n\n")
-    file.write(f"LoxObject {fullName}::evaluate(Interpreter& interpreter)\n")
-    file.write(f"{{\n  return interpreter.visit{fullName}(*this);\n}}\n\n")
+        file.write("/*" + 75 * "-" + "*/\n\n")
+        file.write(f"LoxObject {fullName}::evaluate(Interpreter& interpreter)\n")
+        file.write(f"{{\n  return interpreter.visit{fullName}(*this);\n}}\n\n")
+    else:
+        file.write("/*" + 75 * "-" + "*/\n\n")
+        file.write(f"void {fullName}::execute(Interpreter& interpreter)\n")
+        file.write(f"{{\n  interpreter.visit{fullName}(*this);\n}}\n\n")
 
 
 def defineVisitor(file, baseName, types):
@@ -75,10 +86,11 @@ def defineVisitor(file, baseName, types):
         fullName = t + baseName
         file.write(f"  virtual T visit{fullName}({fullName}&) = 0;\n")
     file.write("};\n\n")
-    file.write("/*" + 75 * "-" + "*/\n\n")
-    file.write(f"// Forward declare {baseName}Visitor implementations\n")
-    file.write("class AstPrinter;\n")
-    file.write("class Interpreter;\n\n")
+    if baseName == "Expr":
+        file.write("/*" + 75 * "-" + "*/\n\n")
+        file.write(f"// Forward declare {baseName}Visitor implementations\n")
+        file.write("class AstPrinter;\n")
+        file.write("class Interpreter;\n\n")
 
 
 def defineAst(outputDir, baseName, types):
@@ -87,7 +99,12 @@ def defineAst(outputDir, baseName, types):
         os.path.join(outputDir, baseName.lower() + ".hpp"), "w", encoding="utf-8"
     ) as f:
         f.write("#pragma once\n\n")
-        f.write('#include "token.hpp"\n\n')
+        if baseName == "Stmt":
+            f.write('#include "expr.hpp"\n\n')
+        else:
+            f.write('#include "token.hpp"\n\n')
+        if baseName == "Stmt":
+            f.write("#include <vector>\n")
         f.write("#include <memory>\n\n")
         f.write("namespace lox {\n\n")
         f.write("/*" + 75 * "-" + "*/\n\n")
@@ -105,32 +122,40 @@ def defineAst(outputDir, baseName, types):
         defineVisitor(f, baseName, classNames)
 
         f.write("/*" + 75 * "-" + "*/\n\n")
-        f.write("/** Base class for all expression types.\n */\n")
+        if baseName == "Expr":
+            f.write("/** Base class for all expression types.\n */\n")
+        else:
+            f.write("/** Base class for all statement types.\n */\n")
         f.write(f"class {baseName}\n")
         f.write("{\n")
         f.write("public:\n")
         f.write(f"  virtual ~{baseName}() = default;\n\n")
-        f.write(f"  // accept function for {baseName}Visitor\n")
-        f.write("  virtual std::string toString(AstPrinter&) = 0;\n\n")
-        f.write(f"  // accept function for {baseName}Visitor\n")
-        f.write("  virtual LoxObject evaluate(Interpreter&) = 0;\n\n")
+        if baseName == "Expr":
+            f.write(f"  // accept function for {baseName}Visitor\n")
+            f.write("  virtual std::string toString(AstPrinter&) = 0;\n\n")
+            f.write(f"  // accept function for {baseName}Visitor\n")
+            f.write("  virtual LoxObject evaluate(Interpreter&) = 0;\n")
+        else:
+            f.write(f"  // accept function for {baseName}Visitor\n")
+            f.write("  virtual void execute(Interpreter&) = 0;\n")
         f.write("};\n\n")
 
         for idx, name in enumerate(classNames):
             declareType(f, baseName, name, classFields[idx])
-        f.write("} // namespace lox\n")
+        f.write("}  // namespace lox\n")
 
     # generate .cpp implementation file
     with open(
         os.path.join(outputDir, baseName.lower() + ".cpp"), "w", encoding="utf-8"
     ) as f:
         f.write(f'#include "{baseName.lower()}.hpp"\n\n')
-        f.write('#include "astprinter.hpp"\n')
+        if baseName == "Expr":
+            f.write('#include "astprinter.hpp"\n')
         f.write('#include "interpreter.hpp"\n\n')
         f.write("namespace lox {\n\n")
         for idx, name in enumerate(classNames):
             defineType(f, baseName, name, classFields[idx])
-        f.write("} // namespace lox\n")
+        f.write("}  // namespace lox\n")
 
 
 if __name__ == "__main__":
@@ -139,7 +164,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     outputDir = sys.argv[1]
-    types = [
+    exprTypes = [
+        {"name": "Assign", "params": [["name", "Token"], ["value", "ExprPtr"]]},
         {
             "name": "Binary",
             "params": [
@@ -167,5 +193,14 @@ if __name__ == "__main__":
                 ["right", "ExprPtr"],
             ],
         },
+        {"name": "Variable", "params": [["name", "Token"]]},
     ]
-    defineAst(outputDir, "Expr", types)
+    defineAst(outputDir, "Expr", exprTypes)
+
+    stmtTypes = [
+        {"name": "Block", "params": [["statements", "std::vector<StmtPtr>"]]},
+        {"name": "Expr", "params": [["expression", "ExprPtr"]]},
+        {"name": "Print", "params": [["expression", "ExprPtr"]]},
+        {"name": "Var", "params": [["name", "Token"], ["initializer", "ExprPtr"]]},
+    ]
+    defineAst(outputDir, "Stmt", stmtTypes)

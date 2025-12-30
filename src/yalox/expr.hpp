@@ -10,10 +10,12 @@ namespace lox {
 
 // Forward declare all Expr types
 class Expr;
+class AssignExpr;
 class BinaryExpr;
 class GroupingExpr;
 class LiteralExpr;
 class UnaryExpr;
+class VariableExpr;
 
 using ExprPtr = std::unique_ptr<Expr>;
 
@@ -25,10 +27,12 @@ class ExprVisitor
 public:
   virtual ~ExprVisitor() = default;
 
+  virtual T visitAssignExpr(AssignExpr&) = 0;
   virtual T visitBinaryExpr(BinaryExpr&) = 0;
   virtual T visitGroupingExpr(GroupingExpr&) = 0;
   virtual T visitLiteralExpr(LiteralExpr&) = 0;
   virtual T visitUnaryExpr(UnaryExpr&) = 0;
+  virtual T visitVariableExpr(VariableExpr&) = 0;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -51,6 +55,23 @@ public:
 
   // accept function for ExprVisitor
   virtual LoxObject evaluate(Interpreter&) = 0;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Assign expression.
+ */
+class AssignExpr : public Expr
+{
+public:
+  AssignExpr(Token name, ExprPtr value);
+
+  std::string toString(AstPrinter&) override;
+
+  LoxObject evaluate(Interpreter&) override;
+
+  Token name;
+  ExprPtr value;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -118,6 +139,22 @@ public:
 
   Token op;
   ExprPtr right;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Variable expression.
+ */
+class VariableExpr : public Expr
+{
+public:
+  VariableExpr(Token name);
+
+  std::string toString(AstPrinter&) override;
+
+  LoxObject evaluate(Interpreter&) override;
+
+  Token name;
 };
 
 }  // namespace lox

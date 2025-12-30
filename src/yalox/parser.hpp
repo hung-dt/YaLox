@@ -1,7 +1,6 @@
 #pragma once
 
-#include "token.hpp"
-#include "expr.hpp"
+#include "stmt.hpp"
 
 #include <vector>
 
@@ -29,18 +28,29 @@ public:
 
   ExprPtr parse();
 
+  std::vector<StmtPtr> parse2();
+
 private:
   const std::vector<Token>& tokens_;
   size_t current_{};
 
   // Grammar rules for expressions
   ExprPtr expression();
+  ExprPtr assignment();
   ExprPtr equality();
   ExprPtr comparison();
   ExprPtr term();
   ExprPtr factor();
   ExprPtr unary();
   ExprPtr primary();
+
+  // Rules for statements
+  StmtPtr declaration();
+  StmtPtr varDecl();
+  StmtPtr statement();
+  StmtPtr printStmt();
+  StmtPtr exprStmt();
+  StmtPtr block();
 
   // Helpers
   bool match(const std::vector<TokenType>&);

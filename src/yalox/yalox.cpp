@@ -36,12 +36,12 @@ void YaLox::runScript(const std::string& filepath)
     // Indicate an error in the exit code
     if ( hadError_ ) {
       // EX_DATAERR(65) - the input data was incorrect or corrupted
-      std::exit(65);
+      std::exit(ERR_DATAERR);
     }
 
     if ( hadRuntimeError_ ) {
       // EX_SOFTWARE(70) - An internal software error has been detected
-      std::exit(70);
+      std::exit(ERR_SOFTWARE);
     }
   } else {
     std::cerr << "Failed to open script file: " << filepath << std::endl;
@@ -86,14 +86,17 @@ void YaLox::run(const std::string& source)
   auto tokens = scanner.scanTokens();
 
   Parser parser{ tokens };
-  auto expression = parser.parse();
+  // auto expression = parser.parse();
+  auto statements = parser.parse2();
 
   // Stop if there was a syntax error
   if ( hadError_ ) return;
 
   // std::cout << AstPrinter().print(*expression) << std::endl;
-  auto value = interpreter_.interpret(*expression);
-  std::cout << toString(value) << '\n';
+  // auto value = interpreter_.interpret(*expression);
+  // std::cout << toString(value) << '\n';
+
+  interpreter_.interpret(statements);
 }
 
 /*---------------------------------------------------------------------------*/
