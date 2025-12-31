@@ -383,7 +383,8 @@ StmtPtr Parser::varDecl()
 
 /*---------------------------------------------------------------------------*/
 
-/** statement -> exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
+/** statement -> exprStmt | forStmt | ifStmt | printStmt | returnStmt |
+ * whileStmt | block ;
  */
 StmtPtr Parser::statement()
 {
@@ -397,6 +398,10 @@ StmtPtr Parser::statement()
 
   if ( match({ TokenType::PRINT }) ) {
     return printStmt();
+  }
+
+  if ( match({ TokenType::RETURN }) ) {
+    return returnStmt();
   }
 
   if ( match({ TokenType::WHILE }) ) {
@@ -439,6 +444,21 @@ StmtPtr Parser::printStmt()
   auto value = expression();
   consume(TokenType::SEMICOLON, "Expect ';' after value.");
   return std::make_unique<PrintStmt>(std::move(value));
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** returnStmt -> "return" expression? ";" ;
+ */
+StmtPtr Parser::returnStmt()
+{
+  Token keyword = previous();
+  ExprPtr value{};
+  if ( !check(TokenType::SEMICOLON) ) {
+    value = expression();
+  }
+  consume(TokenType::SEMICOLON, "Expect ';' after return value.");
+  return std::make_unique<ReturnStmt>(std::move(keyword), std::move(value));
 }
 
 /*---------------------------------------------------------------------------*/

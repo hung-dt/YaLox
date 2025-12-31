@@ -369,9 +369,14 @@ void Interpreter::visitFunctionStmt(FunctionStmt& stmt)
     for ( size_t i = 0; i < func->params.size(); ++i ) {
       funcEnv.define(func->params[i].lexeme(), args[i]);
     };
-    this->executeBlock(func->body, funcEnv);
 
-    return {};  // TODO: add return values
+    try {
+      this->executeBlock(func->body, funcEnv);
+    } catch ( const ReturnValue& ret ) {
+      return ret.value;
+    }
+
+    return {};
   };
   lc.name = "<fn " + func->name.lexeme() + ">";
 
@@ -397,6 +402,18 @@ void Interpreter::visitPrintStmt(PrintStmt& stmt)
 {
   auto value = evaluate(*(stmt.expression));
   std::cout << toString(value) << '\n';
+}
+
+/*---------------------------------------------------------------------------*/
+
+void Interpreter::visitReturnStmt(ReturnStmt& stmt)
+{
+  LoxObject value{};
+  if ( stmt.value ) {
+    value = evaluate(*(stmt.value));
+  }
+
+  throw ReturnValue(value);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -500,6 +517,14 @@ bool Interpreter::isTruthy(const LoxObject& obj) const
   }
 
   return true;
+}
+
+/*---------------------------------------------------------------------------*/
+
+ReturnValue::ReturnValue(LoxObject value)
+  : std::runtime_error("")
+  , value(std::move(value))
+{
 }
 
 /*---------------------------------------------------------------------------*/

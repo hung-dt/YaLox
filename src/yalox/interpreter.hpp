@@ -39,6 +39,7 @@ public:
   void visitFunctionStmt(FunctionStmt&) override;
   void visitIfStmt(IfStmt&) override;
   void visitPrintStmt(PrintStmt&) override;
+  void visitReturnStmt(ReturnStmt&) override;
   void visitVarStmt(VarStmt&) override;
   void visitWhileStmt(WhileStmt&) override;
   void visitForStmt(ForStmt&) override;
@@ -57,6 +58,18 @@ private:
     const LoxObject& right) const;
 
   bool isTruthy(const LoxObject&) const;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** An exception that emulates the return statement.
+ */
+class ReturnValue : public std::runtime_error
+{
+public:
+  ReturnValue(LoxObject value);
+
+  const LoxObject value;
 };
 
 /*---------------------------------------------------------------------------*/

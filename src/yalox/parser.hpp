@@ -57,6 +57,7 @@ private:
   StmtPtr statement();
   StmtPtr ifStmt();
   StmtPtr printStmt();
+  StmtPtr returnStmt();
   StmtPtr whileStmt();
   StmtPtr forStmt();
   StmtPtr exprStmt();

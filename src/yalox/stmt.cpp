@@ -83,6 +83,21 @@ void PrintStmt::execute(Interpreter& interpreter)
 
 /*---------------------------------------------------------------------------*/
 
+ReturnStmt::ReturnStmt(Token keyword, ExprPtr value)
+  : keyword(std::move(keyword))
+  , value(std::move(value))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ReturnStmt::execute(Interpreter& interpreter)
+{
+  interpreter.visitReturnStmt(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 VarStmt::VarStmt(Token name, ExprPtr initializer)
   : name(std::move(name))
   , initializer(std::move(initializer))

@@ -232,6 +232,7 @@ if __name__ == "__main__":
             ],
         },
         {"name": "Print", "params": [["expression", "ExprPtr"]]},
+        {"name": "Return", "params": [["keyword", "Token"], ["value", "ExprPtr"]]},
         {"name": "Var", "params": [["name", "Token"], ["initializer", "ExprPtr"]]},
         {"name": "While", "params": [["condition", "ExprPtr"], ["body", "StmtPtr"]]},
         {

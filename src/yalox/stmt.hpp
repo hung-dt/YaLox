@@ -16,6 +16,7 @@ class ExprStmt;
 class FunctionStmt;
 class IfStmt;
 class PrintStmt;
+class ReturnStmt;
 class VarStmt;
 class WhileStmt;
 class ForStmt;
@@ -35,6 +36,7 @@ public:
   virtual T visitFunctionStmt(FunctionStmt&) = 0;
   virtual T visitIfStmt(IfStmt&) = 0;
   virtual T visitPrintStmt(PrintStmt&) = 0;
+  virtual T visitReturnStmt(ReturnStmt&) = 0;
   virtual T visitVarStmt(VarStmt&) = 0;
   virtual T visitWhileStmt(WhileStmt&) = 0;
   virtual T visitForStmt(ForStmt&) = 0;
@@ -128,6 +130,21 @@ public:
   void execute(Interpreter&) override;
 
   ExprPtr expression;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Return statement.
+ */
+class ReturnStmt : public Stmt
+{
+public:
+  ReturnStmt(Token keyword, ExprPtr value);
+
+  void execute(Interpreter&) override;
+
+  Token keyword;
+  ExprPtr value;
 };
 
 /*---------------------------------------------------------------------------*/
