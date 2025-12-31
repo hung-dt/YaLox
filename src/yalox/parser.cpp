@@ -1,6 +1,8 @@
 #include "parser.hpp"
 #include "yalox.hpp"
 
+#include <format>
+
 namespace lox {
 
 /*---------------------------------------------------------------------------*/
@@ -200,7 +202,7 @@ ExprPtr Parser::factor()
 
 /** The unary rule:
  *
- * unary -> ( "!" | "-" ) unary | primary ;
+ * unary -> ( "!" | "-" ) unary | call ;
  */
 ExprPtr Parser::unary()
 {
@@ -210,7 +212,65 @@ ExprPtr Parser::unary()
     return std::make_unique<UnaryExpr>(std::move(op), std::move(right));
   }
 
-  return primary();
+  return call();
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** call -> primary ( "(" arguments? ")" )* ;
+ */
+ExprPtr Parser::call()
+{
+  /* First, we parse a primary expression, the “left operand” to the call. Then,
+   * each time we see a (, we call finishCall() to parse the call expression
+   * using the previously parsed expression as the callee.
+   */
+  ExprPtr expr = primary();
+
+  // parse argument list
+  while ( true ) {
+    if ( match({ TokenType::LEFT_PAREN }) ) {
+      expr = finishCall(std::move(expr));
+    } else {
+      break;
+    }
+  }
+
+  return expr;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** arguments -> expression ( "," expression )* ;
+ *
+ * We check for the zero-argument case first by seeing if the next token is ).
+ * If it is, we don’t try to parse any arguments.
+ *
+ * Otherwise, we parse an expression, then look for a comma indicating that
+ * there is another argument after that. We keep doing that as long as we find
+ * commas after each expression. When we don’t find a comma, then the argument
+ * list must be done and we consume the expected closing parenthesis. Finally,
+ * we wrap the callee and those arguments up into a call AST node.
+ */
+ExprPtr Parser::finishCall(ExprPtr callee)
+{
+  std::vector<ExprPtr> arguments{};
+  if ( !check(TokenType::RIGHT_PAREN) ) {
+    do {
+      if ( arguments.size() >= MAX_FUNC_ARGS ) {
+        error(
+          peek(),
+          std::format("Cannot have more than {} arguments.", MAX_FUNC_ARGS));
+      }
+      arguments.emplace_back(expression());
+    } while ( match({ TokenType::COMMA }) );
+  }
+
+  Token closingParen =
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after function arguments.");
+
+  return std::make_unique<CallExpr>(
+    std::move(callee), std::move(closingParen), std::move(arguments));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -251,11 +311,14 @@ ExprPtr Parser::primary()
 
 /*---------------------------------------------------------------------------*/
 
-/** declaration -> varDecl | statement ;
+/** declaration -> funDecl | varDecl | statement ;
  */
 StmtPtr Parser::declaration()
 {
   try {
+    if ( match({ TokenType::FUN }) ) {
+      return funDecl("function");
+    }
     if ( match({ TokenType::VAR }) ) {
       return varDecl();
     }
@@ -264,6 +327,41 @@ StmtPtr Parser::declaration()
     synchronize();
   }
   return nullptr;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Function declaration.
+ *
+ * funDecl -> "fun" function ;
+ * function -> IDENTIFIER "(" parameters? ")" block ;
+ */
+StmtPtr Parser::funDecl(const std::string& kind)
+{
+  Token name = consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
+
+  consume(TokenType::LEFT_PAREN, "Expect '(' after " + kind + " name.");
+
+  std::vector<Token> parameters{};
+  if ( !check(TokenType::RIGHT_PAREN) ) {
+    do {
+      if ( parameters.size() >= MAX_FUNC_ARGS ) {
+        error(
+          peek(),
+          std::format("Cannot have more than {} parameters.", MAX_FUNC_ARGS));
+      }
+
+      parameters.emplace_back(
+        consume(TokenType::IDENTIFIER, "Expect parameter name."));
+    } while ( match({ TokenType::COMMA }) );
+  }
+  consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
+
+  consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
+  auto body = block();
+
+  return std::make_unique<FunctionStmt>(
+    std::move(name), std::move(parameters), std::move(body));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -306,7 +404,7 @@ StmtPtr Parser::statement()
   }
 
   if ( match({ TokenType::LEFT_BRACE }) ) {
-    return block();
+    return std::make_unique<BlockStmt>(block());
   }
 
   return exprStmt();
@@ -320,7 +418,7 @@ StmtPtr Parser::ifStmt()
 {
   consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
   ExprPtr condition = expression();
-  consume(TokenType::RIGHT_BRACE, "Expect ')' after if condition.");
+  consume(TokenType::RIGHT_PAREN, "Expect ')' after if condition.");
 
   StmtPtr thenBranch = statement();
   StmtPtr elseBranch{};
@@ -438,7 +536,7 @@ StmtPtr Parser::exprStmt()
 
 /** block -> "{" declaration* "}" ;
  */
-StmtPtr Parser::block()
+std::vector<StmtPtr> Parser::block()
 {
   std::vector<StmtPtr> statements{};
 
@@ -447,7 +545,7 @@ StmtPtr Parser::block()
   }
 
   consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
-  return std::make_unique<BlockStmt>(std::move(statements));
+  return statements;
 }
 
 /*---------------------------------------------------------------------------*/

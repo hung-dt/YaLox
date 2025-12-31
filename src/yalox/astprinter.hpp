@@ -20,6 +20,7 @@ public:
   virtual std::string visitBinaryExpr(BinaryExpr&) override;
   virtual std::string visitVariableExpr(VariableExpr&) override;
   virtual std::string visitAssignExpr(AssignExpr&) override;
+  virtual std::string visitCallExpr(CallExpr&) override;
 };
 
 }

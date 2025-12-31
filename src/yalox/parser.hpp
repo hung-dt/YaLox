@@ -6,6 +6,8 @@
 
 namespace lox {
 
+inline const int MAX_FUNC_ARGS = 255;
+
 /*---------------------------------------------------------------------------*/
 
 class ParserError : public std::runtime_error
@@ -44,10 +46,13 @@ private:
   ExprPtr term();
   ExprPtr factor();
   ExprPtr unary();
+  ExprPtr call();
+  ExprPtr finishCall(ExprPtr);
   ExprPtr primary();
 
   // Rules for statements
   StmtPtr declaration();
+  StmtPtr funDecl(const std::string& kind);
   StmtPtr varDecl();
   StmtPtr statement();
   StmtPtr ifStmt();
@@ -55,7 +60,7 @@ private:
   StmtPtr whileStmt();
   StmtPtr forStmt();
   StmtPtr exprStmt();
-  StmtPtr block();
+  std::vector<StmtPtr> block();
 
   // Helpers
   bool match(const std::vector<TokenType>&);
@@ -70,4 +75,5 @@ private:
 
   ParserError error(const Token& token, const std::string& message) const;
 };
+
 }

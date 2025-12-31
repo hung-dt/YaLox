@@ -13,6 +13,7 @@ namespace lox {
 class Stmt;
 class BlockStmt;
 class ExprStmt;
+class FunctionStmt;
 class IfStmt;
 class PrintStmt;
 class VarStmt;
@@ -31,6 +32,7 @@ public:
 
   virtual T visitBlockStmt(BlockStmt&) = 0;
   virtual T visitExprStmt(ExprStmt&) = 0;
+  virtual T visitFunctionStmt(FunctionStmt&) = 0;
   virtual T visitIfStmt(IfStmt&) = 0;
   virtual T visitPrintStmt(PrintStmt&) = 0;
   virtual T visitVarStmt(VarStmt&) = 0;
@@ -77,6 +79,25 @@ public:
   void execute(Interpreter&) override;
 
   ExprPtr expression;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Function statement.
+ */
+class FunctionStmt : public Stmt
+{
+public:
+  FunctionStmt(
+    Token name,
+    std::vector<Token> params,
+    std::vector<StmtPtr> body);
+
+  void execute(Interpreter&) override;
+
+  Token name;
+  std::vector<Token> params;
+  std::vector<StmtPtr> body;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -159,4 +180,5 @@ public:
   ExprPtr increment;
   StmtPtr body;
 };
+
 }  // namespace lox

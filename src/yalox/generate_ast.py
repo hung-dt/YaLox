@@ -103,8 +103,7 @@ def defineAst(outputDir, baseName, types):
             f.write('#include "expr.hpp"\n\n')
         else:
             f.write('#include "token.hpp"\n\n')
-        if baseName == "Stmt":
-            f.write("#include <vector>\n")
+        f.write("#include <vector>\n")
         f.write("#include <memory>\n\n")
         f.write("namespace lox {\n\n")
         f.write("/*" + 75 * "-" + "*/\n\n")
@@ -175,6 +174,14 @@ if __name__ == "__main__":
             ],
         },
         {
+            "name": "Call",
+            "params": [
+                ["callee", "ExprPtr"],
+                ["closingParen", "Token"],
+                ["arguments", "std::vector<ExprPtr>"],
+            ],
+        },
+        {
             "name": "Grouping",
             "params": [
                 ["expression", "ExprPtr"],
@@ -208,6 +215,14 @@ if __name__ == "__main__":
     stmtTypes = [
         {"name": "Block", "params": [["statements", "std::vector<StmtPtr>"]]},
         {"name": "Expr", "params": [["expression", "ExprPtr"]]},
+        {
+            "name": "Function",
+            "params": [
+                ["name", "Token"],
+                ["params", "std::vector<Token>"],
+                ["body", "std::vector<StmtPtr>"],
+            ],
+        },
         {
             "name": "If",
             "params": [

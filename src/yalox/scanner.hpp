@@ -32,7 +32,7 @@ private:
   bool match(char);
   char peek() const;
   char peekNext() const;
-  void addToken(TokenType, const LoxObject& literal = std::nullopt);
+  void addToken(TokenType, LoxObject literal = std::nullopt);
 
   bool isAtEnd() const;
 };

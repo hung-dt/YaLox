@@ -60,4 +60,12 @@ std::string AstPrinter::visitAssignExpr(AssignExpr& expr)
   return "(= " + expr.name.lexeme() + " " + expr.value->toString(*this) + ")";
 }
 
+/*---------------------------------------------------------------------------*/
+
+std::string AstPrinter::visitCallExpr([[maybe_unused]] CallExpr& expr)
+{
+  return "";
 }
+
+}
+

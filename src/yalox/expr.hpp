@@ -2,6 +2,7 @@
 
 #include "token.hpp"
 
+#include <vector>
 #include <memory>
 
 namespace lox {
@@ -12,6 +13,7 @@ namespace lox {
 class Expr;
 class AssignExpr;
 class BinaryExpr;
+class CallExpr;
 class GroupingExpr;
 class LiteralExpr;
 class LogicalExpr;
@@ -30,6 +32,7 @@ public:
 
   virtual T visitAssignExpr(AssignExpr&) = 0;
   virtual T visitBinaryExpr(BinaryExpr&) = 0;
+  virtual T visitCallExpr(CallExpr&) = 0;
   virtual T visitGroupingExpr(GroupingExpr&) = 0;
   virtual T visitLiteralExpr(LiteralExpr&) = 0;
   virtual T visitLogicalExpr(LogicalExpr&) = 0;
@@ -92,6 +95,24 @@ public:
   ExprPtr left;
   Token op;
   ExprPtr right;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Call expression.
+ */
+class CallExpr : public Expr
+{
+public:
+  CallExpr(ExprPtr callee, Token closingParen, std::vector<ExprPtr> arguments);
+
+  std::string toString(AstPrinter&) override;
+
+  LoxObject evaluate(Interpreter&) override;
+
+  ExprPtr callee;
+  Token closingParen;
+  std::vector<ExprPtr> arguments;
 };
 
 /*---------------------------------------------------------------------------*/

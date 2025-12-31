@@ -24,27 +24,29 @@ public:
 
   void interpret(const std::vector<StmtPtr>&);
 
-  const EnvSPtr& environment() const;
-  void environment(const EnvSPtr&);
-
   LoxObject visitAssignExpr(AssignExpr&) override;
   LoxObject visitBinaryExpr(BinaryExpr&) override;
+  LoxObject visitCallExpr(CallExpr&) override;
   LoxObject visitGroupingExpr(GroupingExpr&) override;
   LoxObject visitLiteralExpr(LiteralExpr&) override;
   LoxObject visitLogicalExpr(LogicalExpr&) override;
   LoxObject visitUnaryExpr(UnaryExpr&) override;
   LoxObject visitVariableExpr(VariableExpr&) override;
 
+  void executeBlock(const std::vector<StmtPtr>&, Environment&);
   void visitBlockStmt(BlockStmt&) override;
   void visitExprStmt(ExprStmt&) override;
+  void visitFunctionStmt(FunctionStmt&) override;
   void visitIfStmt(IfStmt&) override;
   void visitPrintStmt(PrintStmt&) override;
   void visitVarStmt(VarStmt&) override;
   void visitWhileStmt(WhileStmt&) override;
   void visitForStmt(ForStmt&) override;
 
+  Environment globals;
+
 private:
-  EnvSPtr env_;
+  Environment* env_;
 
   LoxObject evaluate(Expr&);
 

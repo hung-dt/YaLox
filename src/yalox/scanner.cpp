@@ -194,7 +194,7 @@ void Scanner::scanString()
 
   // trim the surrounding quotes
   const auto value = source_.substr(start_ + 1, current_ - start_ - 2);
-  addToken(TokenType::STRING, LoxValueType{ value });
+  addToken(TokenType::STRING, LoxValueType{ std::move(value) });
 }
 
 /*---------------------------------------------------------------------------*/
@@ -296,10 +296,10 @@ bool Scanner::isAtEnd() const
 
 /** Add a token with an optional value to the token list.
  */
-void Scanner::addToken(TokenType type, const LoxObject& literal)
+void Scanner::addToken(TokenType type, LoxObject literal)
 {
   const auto lexeme = source_.substr(start_, current_ - start_);
-  tokens_.emplace_back(type, lexeme, literal, line_);
+  tokens_.emplace_back(type, std::move(lexeme), std::move(literal), line_);
 }
 
 }

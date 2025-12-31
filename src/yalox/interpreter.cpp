@@ -1,48 +1,39 @@
 #include "interpreter.hpp"
 #include "yalox.hpp"
 
+#include <chrono>
 #include <cassert>
+#include <format>
 #include <iostream>
 
 namespace lox {
 
 /*---------------------------------------------------------------------------*/
 
-/** Execute a block statement in the context of a given environment.
+/** Make sure interpreter's env_ does not change after and exit a block.
+ *
+ * Keep the current env when constructing and restore it when destructing.
+ * This is used by executeBlock() to ensure that if the function is done or
+ * there is any exception, then the env will not be changed.
  */
-class BlockExecutor
+class EnvBlockGuard
 {
 public:
-  BlockExecutor(
-    const std::vector<StmtPtr>& statements,
-    Interpreter& intpr,
-    const EnvSPtr& env)
-    : statements_(statements)
-    , intpr_(intpr)
-    , prev_(intpr.environment())  // back up the current env
+  // Pass the reference of the current env pointer
+  EnvBlockGuard(Environment*& env)
+    : env_(env)
   {
-    // set the new env
-    intpr.environment(env);
+    original_ = env;  // keep the original env pointer address
   }
 
-  // execute statements in block
-  void operator()()
+  ~EnvBlockGuard()
   {
-    for ( auto& stmt : statements_ ) {
-      stmt->execute(intpr_);
-    }
-  }
-
-  // restore the current env when done or exception was thrown
-  ~BlockExecutor()
-  {
-    intpr_.environment(prev_);
+    env_ = original_;  // now restore the original env pointer
   }
 
 private:
-  const std::vector<StmtPtr>& statements_;
-  Interpreter& intpr_;
-  const EnvSPtr prev_;
+  Environment*& env_;
+  Environment* original_;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -83,9 +74,30 @@ bool operator==(const LoxObject& left, const LoxObject& right)
 
 /*---------------------------------------------------------------------------*/
 
-Interpreter::Interpreter()
-  : env_(std::make_shared<Environment>())
+/** The built-in clock() function.
+ * Return the number of seconds (with fractional) that have passed since epoch.
+ */
+LoxObject clockFunc(const std::vector<LoxObject>& /* unused */)
 {
+  std::chrono::duration<double> duration =
+    std::chrono::system_clock::now().time_since_epoch();
+  return duration.count();
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** The env_ field in the interpreter changes as we enter and exit local
+ * scopes. It tracks the current environment. This new globals field holds a
+ * fixed reference to the outermost global environment.
+ */
+
+Interpreter::Interpreter()
+  : globals{ nullptr }
+{
+  env_ = &globals;
+
+  // Built-in clock() function
+  globals.define("clock", LoxCallable{ 0, clockFunc, "<native fn>" });
 }
 
 /*---------------------------------------------------------------------------*/
@@ -114,24 +126,6 @@ void Interpreter::interpret(const std::vector<StmtPtr>& program)
   } catch ( const RuntimeError& error ) {
     YaLox::runtimeError(error);
   }
-}
-
-/*---------------------------------------------------------------------------*/
-
-/** Get current environment.
- */
-const EnvSPtr& Interpreter::environment() const
-{
-  return env_;
-}
-
-/*---------------------------------------------------------------------------*/
-
-/** Set new environment.
- */
-void Interpreter::environment(const EnvSPtr& env)
-{
-  env_ = env;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -216,6 +210,54 @@ LoxObject Interpreter::visitBinaryExpr(BinaryExpr& expr)
 
 /*---------------------------------------------------------------------------*/
 
+/** Check if a LoxObject is callable.
+ */
+void validateLoxCallable(Token op, const LoxObject& obj)
+{
+  if ( obj && std::holds_alternative<LoxCallable>(obj.value()) ) return;
+
+  throw RuntimeError(op, "Can only call functions and classes.");
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Check that the number of passed arguments must match that of function's.
+ */
+void validateFunctionArity(
+  const Token& op,
+  const std::vector<LoxObject>& args,
+  const LoxCallable& func)
+{
+  if ( args.size() == func.arity ) return;
+
+  throw RuntimeError(
+    op,
+    std::format("Expected {} arguments but got {}.", func.arity, args.size()));
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Execute function call.
+ */
+LoxObject Interpreter::visitCallExpr(CallExpr& expr)
+{
+  LoxObject callee = evaluate(*(expr.callee));
+
+  std::vector<LoxObject> arguments{};
+  for ( auto& arg : expr.arguments ) {
+    arguments.emplace_back(evaluate(*arg));
+  }
+
+  validateLoxCallable(expr.closingParen, callee);
+  auto function = std::get<LoxCallable>(callee.value());
+
+  validateFunctionArity(expr.closingParen, arguments, function);
+
+  return function.call(arguments);
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject Interpreter::visitGroupingExpr(GroupingExpr& expr)
 {
   return evaluate(*(expr.expression));
@@ -278,12 +320,28 @@ LoxObject Interpreter::visitVariableExpr(VariableExpr& expr)
 
 /*---------------------------------------------------------------------------*/
 
+void Interpreter::executeBlock(
+  const std::vector<StmtPtr>& block,
+  Environment& blockEnv)
+{
+  EnvBlockGuard eg{ this->env_ };
+
+  this->env_ = &blockEnv;
+
+  for ( auto& stmt : block ) {
+    stmt->execute(*this);
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
 /** Execute block statement.
  */
 void Interpreter::visitBlockStmt(BlockStmt& stmt)
 {
   // execute the block in a new env whose outer scope is the current env.
-  BlockExecutor(stmt.statements, *this, std::make_shared<Environment>(env_))();
+  Environment blockEnv{ this->env_ };
+  executeBlock(stmt.statements, blockEnv);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -291,6 +349,33 @@ void Interpreter::visitBlockStmt(BlockStmt& stmt)
 void Interpreter::visitExprStmt(ExprStmt& stmt)
 {
   evaluate(*(stmt.expression));
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Execute function declaration statement.
+ */
+void Interpreter::visitFunctionStmt(FunctionStmt& stmt)
+{
+  auto func = std::make_shared<FunctionStmt>(
+    stmt.name, std::move(stmt.params), std::move(stmt.body));
+
+  LoxCallable lc;
+  lc.arity = func->params.size();
+  lc.call = [this, func](const std::vector<LoxObject>& args) -> LoxObject {
+    assert(func->params.size() == args.size());
+
+    Environment funcEnv{ this->globals };
+    for ( size_t i = 0; i < func->params.size(); ++i ) {
+      funcEnv.define(func->params[i].lexeme(), args[i]);
+    };
+    this->executeBlock(func->body, funcEnv);
+
+    return {};  // TODO: add return values
+  };
+  lc.name = "<fn " + func->name.lexeme() + ">";
+
+  env_->define(func->name.lexeme(), std::move(lc));
 }
 
 /*---------------------------------------------------------------------------*/

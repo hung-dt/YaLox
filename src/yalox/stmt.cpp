@@ -34,6 +34,25 @@ void ExprStmt::execute(Interpreter& interpreter)
 
 /*---------------------------------------------------------------------------*/
 
+FunctionStmt::FunctionStmt(
+  Token name,
+  std::vector<Token> params,
+  std::vector<StmtPtr> body)
+  : name(std::move(name))
+  , params(std::move(params))
+  , body(std::move(body))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+void FunctionStmt::execute(Interpreter& interpreter)
+{
+  interpreter.visitFunctionStmt(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 IfStmt::IfStmt(ExprPtr condition, StmtPtr thenBranch, StmtPtr elseBranch)
   : condition(std::move(condition))
   , thenBranch(std::move(thenBranch))

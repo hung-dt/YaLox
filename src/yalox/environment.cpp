@@ -8,7 +8,7 @@ namespace lox {
 
 /*---------------------------------------------------------------------------*/
 
-Environment::Environment(const EnvSPtr& enclosing)
+Environment::Environment(Environment* enclosing)
   : enclosing(enclosing)
 {
 }

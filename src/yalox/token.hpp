@@ -1,8 +1,8 @@
 #pragma once
 
-#include <optional>
+#include "types.hpp"
+
 #include <string>
-#include <variant>
 
 namespace lox {
 
@@ -34,22 +34,10 @@ enum class TokenType
 
 /*---------------------------------------------------------------------------*/
 
-// Lox values can be number, string, bool
-using LoxValueType = std::variant<double, std::string, bool>;
-
-// or nil
-using LoxObject = std::optional<LoxValueType>;
-
-/*---------------------------------------------------------------------------*/
-
 class Token
 {
 public:
-  Token(
-    TokenType type,
-    const std::string& lexeme,
-    const LoxObject& literal,
-    int line);
+  Token(TokenType type, std::string lexeme, LoxObject literal, int line);
 
   std::string toString() const;
 

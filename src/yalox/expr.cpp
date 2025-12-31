@@ -52,6 +52,32 @@ LoxObject BinaryExpr::evaluate(Interpreter& interpreter)
 
 /*---------------------------------------------------------------------------*/
 
+CallExpr::CallExpr(
+  ExprPtr callee,
+  Token closingParen,
+  std::vector<ExprPtr> arguments)
+  : callee(std::move(callee))
+  , closingParen(std::move(closingParen))
+  , arguments(std::move(arguments))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string CallExpr::toString(AstPrinter& printer)
+{
+  return printer.visitCallExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject CallExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitCallExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 GroupingExpr::GroupingExpr(ExprPtr expression)
   : expression(std::move(expression))
 {

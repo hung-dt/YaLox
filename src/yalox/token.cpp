@@ -58,14 +58,10 @@ constexpr std::string_view TokenType2String(TokenType type)
 
 /*---------------------------------------------------------------------------*/
 
-Token::Token(
-  TokenType type,
-  const std::string& lexeme,
-  const LoxObject& literal,
-  int line)
+Token::Token(TokenType type, std::string lexeme, LoxObject literal, int line)
   : type_(type)
-  , lexeme_(lexeme)
-  , literal_{ literal }
+  , lexeme_(std::move(lexeme))
+  , literal_{ std::move(literal) }
   , line_(line)
 {
 }
@@ -124,6 +120,8 @@ std::string toString(const LoxObject& obj)
       return os.str();
     } else if ( std::holds_alternative<bool>(exprValue) ) {
       return std::get<bool>(exprValue) ? "true" : "false";
+    } else if ( std::holds_alternative<LoxCallable>(exprValue) ) {
+      return std::get<LoxCallable>(exprValue).name;
     }
     return "\"" + std::get<std::string>(exprValue) + "\"";
   }
