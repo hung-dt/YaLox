@@ -33,7 +33,7 @@ public:
   LoxObject visitUnaryExpr(UnaryExpr&) override;
   LoxObject visitVariableExpr(VariableExpr&) override;
 
-  void executeBlock(const std::vector<StmtPtr>&, Environment&);
+  void executeBlock(const std::vector<StmtPtr>&, EnvPtr&);
   void visitBlockStmt(BlockStmt&) override;
   void visitExprStmt(ExprStmt&) override;
   void visitFunctionStmt(FunctionStmt&) override;
@@ -44,10 +44,10 @@ public:
   void visitWhileStmt(WhileStmt&) override;
   void visitForStmt(ForStmt&) override;
 
-  Environment globals;
+  EnvPtr globals;
 
 private:
-  Environment* env_;
+  EnvPtr env_;
 
   LoxObject evaluate(Expr&);
 

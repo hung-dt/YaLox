@@ -1,6 +1,7 @@
 #pragma once
 
 #include "token.hpp"
+#include "countedptr.hpp"
 
 #include <string>
 #include <unordered_map>
@@ -9,12 +10,14 @@ namespace lox {
 
 class Environment;
 
+using EnvPtr = counted_ptr<Environment>;
+
 /*---------------------------------------------------------------------------*/
 
 class Environment
 {
 public:
-  Environment(Environment* enclosing = nullptr);
+  Environment(const EnvPtr& enclosing = nullptr);
 
   void define(const std::string& name, const LoxObject& value);
 
@@ -22,7 +25,9 @@ public:
 
   void assign(const Token& name, const LoxObject& value);
 
-  Environment* enclosing;  // outer scope
+  EnvPtr enclosing;  // outer scope
+
+  void print() const;
 
 private:
   std::unordered_map<std::string, LoxObject> values_;

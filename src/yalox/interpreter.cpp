@@ -20,7 +20,7 @@ class EnvBlockGuard
 {
 public:
   // Pass the reference of the current env pointer
-  EnvBlockGuard(Environment*& env)
+  EnvBlockGuard(EnvPtr& env)
     : env_(env)
   {
     original_ = env;  // keep the original env pointer address
@@ -32,8 +32,8 @@ public:
   }
 
 private:
-  Environment*& env_;
-  Environment* original_;
+  EnvPtr& env_;
+  EnvPtr original_;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -92,12 +92,12 @@ LoxObject clockFunc(const std::vector<LoxObject>& /* unused */)
  */
 
 Interpreter::Interpreter()
-  : globals{ nullptr }
+  : globals{ new Environment{} }
 {
-  env_ = &globals;
+  env_ = globals;
 
   // Built-in clock() function
-  globals.define("clock", LoxCallable{ 0, clockFunc, "<native fn>" });
+  globals->define("clock", LoxCallable{ 0, clockFunc, "<native fn>" });
 }
 
 /*---------------------------------------------------------------------------*/
@@ -322,11 +322,11 @@ LoxObject Interpreter::visitVariableExpr(VariableExpr& expr)
 
 void Interpreter::executeBlock(
   const std::vector<StmtPtr>& block,
-  Environment& blockEnv)
+  EnvPtr& blockEnv)
 {
   EnvBlockGuard eg{ this->env_ };
 
-  this->env_ = &blockEnv;
+  this->env_ = blockEnv;
 
   for ( auto& stmt : block ) {
     stmt->execute(*this);
@@ -340,7 +340,7 @@ void Interpreter::executeBlock(
 void Interpreter::visitBlockStmt(BlockStmt& stmt)
 {
   // execute the block in a new env whose outer scope is the current env.
-  Environment blockEnv{ this->env_ };
+  EnvPtr blockEnv{ new Environment{ this->env_ } };
   executeBlock(stmt.statements, blockEnv);
 }
 
@@ -360,14 +360,18 @@ void Interpreter::visitFunctionStmt(FunctionStmt& stmt)
   auto func = std::make_shared<FunctionStmt>(
     stmt.name, std::move(stmt.params), std::move(stmt.body));
 
+  auto closure = this->env_;
+
   LoxCallable lc;
   lc.arity = func->params.size();
-  lc.call = [this, func](const std::vector<LoxObject>& args) -> LoxObject {
+  lc.call =
+    [this, func, closure](const std::vector<LoxObject>& args) -> LoxObject {
     assert(func->params.size() == args.size());
 
-    Environment funcEnv{ this->globals };
+    EnvPtr funcEnv{ new Environment{ closure } };
+
     for ( size_t i = 0; i < func->params.size(); ++i ) {
-      funcEnv.define(func->params[i].lexeme(), args[i]);
+      funcEnv->define(func->params[i].lexeme(), args[i]);
     };
 
     try {

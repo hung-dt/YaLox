@@ -2,13 +2,14 @@
 #include "interpreter.hpp"
 #include "token.hpp"
 
+#include <iostream>
 #include <string>
 
 namespace lox {
 
 /*---------------------------------------------------------------------------*/
 
-Environment::Environment(Environment* enclosing)
+Environment::Environment(const EnvPtr& enclosing)
   : enclosing(enclosing)
 {
 }
@@ -60,6 +61,21 @@ void Environment::assign(const Token& name, const LoxObject& value)
   }
 
   throw RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
+}
+
+/*---------------------------------------------------------------------------*/
+
+void Environment::print() const
+{
+  std::cout << "Env: " << this << '\n';
+  for ( const auto& p : values_ ) {
+    std::cout << "  " << p.first << ": " << toString(p.second) << '\n';
+  }
+  if ( enclosing ) {
+    std::cout << "  outer ";
+    enclosing->print();
+  }
+  std::cout << "----\n";
 }
 
 }
