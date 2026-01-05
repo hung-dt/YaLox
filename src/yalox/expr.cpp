@@ -1,6 +1,7 @@
 #include "expr.hpp"
 
 #include "astprinter.hpp"
+#include "resolver.hpp"
 #include "interpreter.hpp"
 
 namespace lox {
@@ -18,6 +19,13 @@ AssignExpr::AssignExpr(Token name, ExprPtr value)
 std::string AssignExpr::toString(AstPrinter& printer)
 {
   return printer.visitAssignExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void AssignExpr::resolve(Resolver& r)
+{
+  return r.visitAssignExpr(*this);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -41,6 +49,13 @@ BinaryExpr::BinaryExpr(ExprPtr left, Token op, ExprPtr right)
 std::string BinaryExpr::toString(AstPrinter& printer)
 {
   return printer.visitBinaryExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void BinaryExpr::resolve(Resolver& r)
+{
+  return r.visitBinaryExpr(*this);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -71,6 +86,13 @@ std::string CallExpr::toString(AstPrinter& printer)
 
 /*---------------------------------------------------------------------------*/
 
+void CallExpr::resolve(Resolver& r)
+{
+  return r.visitCallExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject CallExpr::evaluate(Interpreter& interpreter)
 {
   return interpreter.visitCallExpr(*this);
@@ -92,6 +114,13 @@ std::string GroupingExpr::toString(AstPrinter& printer)
 
 /*---------------------------------------------------------------------------*/
 
+void GroupingExpr::resolve(Resolver& r)
+{
+  return r.visitGroupingExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject GroupingExpr::evaluate(Interpreter& interpreter)
 {
   return interpreter.visitGroupingExpr(*this);
@@ -109,6 +138,13 @@ LiteralExpr::LiteralExpr(LoxObject value)
 std::string LiteralExpr::toString(AstPrinter& printer)
 {
   return printer.visitLiteralExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void LiteralExpr::resolve(Resolver& r)
+{
+  return r.visitLiteralExpr(*this);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -136,6 +172,13 @@ std::string LogicalExpr::toString(AstPrinter& printer)
 
 /*---------------------------------------------------------------------------*/
 
+void LogicalExpr::resolve(Resolver& r)
+{
+  return r.visitLogicalExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject LogicalExpr::evaluate(Interpreter& interpreter)
 {
   return interpreter.visitLogicalExpr(*this);
@@ -158,6 +201,13 @@ std::string UnaryExpr::toString(AstPrinter& printer)
 
 /*---------------------------------------------------------------------------*/
 
+void UnaryExpr::resolve(Resolver& r)
+{
+  return r.visitUnaryExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject UnaryExpr::evaluate(Interpreter& interpreter)
 {
   return interpreter.visitUnaryExpr(*this);
@@ -175,6 +225,13 @@ VariableExpr::VariableExpr(Token name)
 std::string VariableExpr::toString(AstPrinter& printer)
 {
   return printer.visitVariableExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void VariableExpr::resolve(Resolver& r)
+{
+  return r.visitVariableExpr(*this);
 }
 
 /*---------------------------------------------------------------------------*/

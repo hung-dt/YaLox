@@ -23,7 +23,7 @@ void Environment::define(const std::string& name, const LoxObject& value)
 
 /*---------------------------------------------------------------------------*/
 
-LoxObject Environment::get(const Token& name) const
+const LoxObject& Environment::get(const Token& name) const
 {
   // get from current scope
   auto it = values_.find(name.lexeme());
@@ -37,6 +37,32 @@ LoxObject Environment::get(const Token& name) const
   }
 
   throw RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Get the value of the variable in the environment which defines the variable.
+ *
+ * It doesn't even have to check to see if the variable is there - we know it
+ * will be because the resolver already found it before.
+ */
+const LoxObject& Environment::getAt(size_t distance, const Token& name)
+{
+  return ancestor(distance).values_[name.lexeme()];
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Walk a fixed number of hops up the parent chain and returns the environment
+ * there.
+ */
+Environment& Environment::ancestor(size_t distance)
+{
+  auto env = this;
+  for ( size_t i = 0; i < distance; ++i ) {
+    env = env->enclosing.get();
+  }
+  return *env;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -61,6 +87,16 @@ void Environment::assign(const Token& name, const LoxObject& value)
   }
 
   throw RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
+}
+
+/*---------------------------------------------------------------------------*/
+
+void Environment::assignAt(
+  size_t distance,
+  const Token& name,
+  const LoxObject& value)
+{
+  ancestor(distance).values_[name.lexeme()] = value;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -1,5 +1,6 @@
 #include "stmt.hpp"
 
+#include "resolver.hpp"
 #include "interpreter.hpp"
 
 namespace lox {
@@ -9,6 +10,13 @@ namespace lox {
 BlockStmt::BlockStmt(std::vector<StmtPtr> statements)
   : statements(std::move(statements))
 {
+}
+
+/*---------------------------------------------------------------------------*/
+
+void BlockStmt::resolve(Resolver& r)
+{
+  return r.visitBlockStmt(*this);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -23,6 +31,13 @@ void BlockStmt::execute(Interpreter& interpreter)
 ExprStmt::ExprStmt(ExprPtr expression)
   : expression(std::move(expression))
 {
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ExprStmt::resolve(Resolver& r)
+{
+  return r.visitExprStmt(*this);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -46,6 +61,13 @@ FunctionStmt::FunctionStmt(
 
 /*---------------------------------------------------------------------------*/
 
+void FunctionStmt::resolve(Resolver& r)
+{
+  return r.visitFunctionStmt(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void FunctionStmt::execute(Interpreter& interpreter)
 {
   interpreter.visitFunctionStmt(*this);
@@ -62,6 +84,13 @@ IfStmt::IfStmt(ExprPtr condition, StmtPtr thenBranch, StmtPtr elseBranch)
 
 /*---------------------------------------------------------------------------*/
 
+void IfStmt::resolve(Resolver& r)
+{
+  return r.visitIfStmt(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void IfStmt::execute(Interpreter& interpreter)
 {
   interpreter.visitIfStmt(*this);
@@ -72,6 +101,13 @@ void IfStmt::execute(Interpreter& interpreter)
 PrintStmt::PrintStmt(ExprPtr expression)
   : expression(std::move(expression))
 {
+}
+
+/*---------------------------------------------------------------------------*/
+
+void PrintStmt::resolve(Resolver& r)
+{
+  return r.visitPrintStmt(*this);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -91,6 +127,13 @@ ReturnStmt::ReturnStmt(Token keyword, ExprPtr value)
 
 /*---------------------------------------------------------------------------*/
 
+void ReturnStmt::resolve(Resolver& r)
+{
+  return r.visitReturnStmt(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void ReturnStmt::execute(Interpreter& interpreter)
 {
   interpreter.visitReturnStmt(*this);
@@ -106,6 +149,13 @@ VarStmt::VarStmt(Token name, ExprPtr initializer)
 
 /*---------------------------------------------------------------------------*/
 
+void VarStmt::resolve(Resolver& r)
+{
+  return r.visitVarStmt(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void VarStmt::execute(Interpreter& interpreter)
 {
   interpreter.visitVarStmt(*this);
@@ -117,6 +167,13 @@ WhileStmt::WhileStmt(ExprPtr condition, StmtPtr body)
   : condition(std::move(condition))
   , body(std::move(body))
 {
+}
+
+/*---------------------------------------------------------------------------*/
+
+void WhileStmt::resolve(Resolver& r)
+{
+  return r.visitWhileStmt(*this);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -138,6 +195,13 @@ ForStmt::ForStmt(
   , increment(std::move(increment))
   , body(std::move(body))
 {
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ForStmt::resolve(Resolver& r)
+{
+  return r.visitForStmt(*this);
 }
 
 /*---------------------------------------------------------------------------*/

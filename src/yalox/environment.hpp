@@ -21,16 +21,21 @@ public:
 
   void define(const std::string& name, const LoxObject& value);
 
-  LoxObject get(const Token& name) const;
+  const LoxObject& get(const Token& name) const;
+
+  const LoxObject& getAt(size_t distance, const Token& name);
 
   void assign(const Token& name, const LoxObject& value);
 
-  EnvPtr enclosing;  // outer scope
+  void assignAt(size_t distance, const Token& name, const LoxObject& value);
 
   void print() const;
 
 private:
   std::unordered_map<std::string, LoxObject> values_;
+  EnvPtr enclosing;  // outer scope
+
+  Environment& ancestor(size_t distance);
 };
 
 }

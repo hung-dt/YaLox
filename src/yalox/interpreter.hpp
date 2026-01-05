@@ -24,6 +24,8 @@ public:
 
   void interpret(const std::vector<StmtPtr>&);
 
+  void resolve(Expr&, size_t depth);
+
   LoxObject visitAssignExpr(AssignExpr&) override;
   LoxObject visitBinaryExpr(BinaryExpr&) override;
   LoxObject visitCallExpr(CallExpr&) override;
@@ -49,6 +51,10 @@ public:
 private:
   EnvPtr env_;
 
+  // A map to store resolution info that associates each syntax tree node with
+  // its resolved data.
+  std::unordered_map<Expr*, size_t> locals_;
+
   LoxObject evaluate(Expr&);
 
   void validateNumberOperand(const Token& op, const LoxObject& operand) const;
@@ -58,6 +64,8 @@ private:
     const LoxObject& right) const;
 
   bool isTruthy(const LoxObject&) const;
+
+  LoxObject lookUpVariable(const Token&, VariableExpr&);
 };
 
 /*---------------------------------------------------------------------------*/

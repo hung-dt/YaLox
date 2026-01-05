@@ -4,6 +4,7 @@
 #include "yalox.hpp"
 #include "scanner.hpp"
 #include "parser.hpp"
+#include "resolver.hpp"
 // #include "astprinter.hpp"
 
 #include <iostream>
@@ -92,6 +93,11 @@ void YaLox::run(const std::string& source)
   // Stop if there was a syntax error
   if ( hadError_ ) return;
 
+  Resolver(interpreter_).resolve(statements);
+
+  // Stop if there was a resolution error
+  if ( hadError_ ) return;
+
   // std::cout << AstPrinter().print(*expression) << std::endl;
   // auto value = interpreter_.interpret(*expression);
   // std::cout << toString(value) << '\n';
@@ -144,4 +150,4 @@ void YaLox::error(const Token& token, const std::string& message)
   }
 }
 
-}
+}  // namespace lox

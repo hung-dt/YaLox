@@ -31,8 +31,10 @@ def declareType(file, baseName, className, fieldList):
     # Write visitor's overriden methods
     if baseName == "Expr":
         file.write("  std::string toString(AstPrinter&) override;\n\n")
+        file.write("  void resolve(Resolver&) override;\n\n")
         file.write("  LoxObject evaluate(Interpreter&) override;\n\n")
     else:
+        file.write("  void resolve(Resolver&) override;\n\n")
         file.write("  void execute(Interpreter&) override;\n\n")
 
     # Write member lines
@@ -68,9 +70,17 @@ def defineType(file, baseName, className, fieldList):
         file.write(f"{{\n  return printer.visit{fullName}(*this);\n}}\n\n")
 
         file.write("/*" + 75 * "-" + "*/\n\n")
+        file.write(f"void {fullName}::resolve(Resolver& r)\n")
+        file.write(f"{{\n  return r.visit{fullName}(*this);\n}}\n\n")
+
+        file.write("/*" + 75 * "-" + "*/\n\n")
         file.write(f"LoxObject {fullName}::evaluate(Interpreter& interpreter)\n")
         file.write(f"{{\n  return interpreter.visit{fullName}(*this);\n}}\n\n")
     else:
+        file.write("/*" + 75 * "-" + "*/\n\n")
+        file.write(f"void {fullName}::resolve(Resolver& r)\n")
+        file.write(f"{{\n  return r.visit{fullName}(*this);\n}}\n\n")
+
         file.write("/*" + 75 * "-" + "*/\n\n")
         file.write(f"void {fullName}::execute(Interpreter& interpreter)\n")
         file.write(f"{{\n  interpreter.visit{fullName}(*this);\n}}\n\n")
@@ -90,6 +100,7 @@ def defineVisitor(file, baseName, types):
         file.write("/*" + 75 * "-" + "*/\n\n")
         file.write(f"// Forward declare {baseName}Visitor implementations\n")
         file.write("class AstPrinter;\n")
+        file.write("class Resolver;\n")
         file.write("class Interpreter;\n\n")
 
 
@@ -130,12 +141,16 @@ def defineAst(outputDir, baseName, types):
         f.write("public:\n")
         f.write(f"  virtual ~{baseName}() = default;\n\n")
         if baseName == "Expr":
-            f.write(f"  // accept function for {baseName}Visitor\n")
+            f.write(f"  // accept function for {baseName}Visitor<std::string>\n")
             f.write("  virtual std::string toString(AstPrinter&) = 0;\n\n")
-            f.write(f"  // accept function for {baseName}Visitor\n")
+            f.write(f"  // accept function for {baseName}Visitor<void>\n")
+            f.write("  virtual void resolve(Resolver&) = 0;\n\n")
+            f.write(f"  // accept function for {baseName}Visitor<LoxObject>\n")
             f.write("  virtual LoxObject evaluate(Interpreter&) = 0;\n")
         else:
-            f.write(f"  // accept function for {baseName}Visitor\n")
+            f.write(f"  // accept function for {baseName}Visitor<void>\n")
+            f.write("  virtual void resolve(Resolver&) = 0;\n\n")
+            f.write(f"  // accept function for {baseName}Visitor<void>\n")
             f.write("  virtual void execute(Interpreter&) = 0;\n")
         f.write("};\n\n")
 
@@ -150,6 +165,7 @@ def defineAst(outputDir, baseName, types):
         f.write(f'#include "{baseName.lower()}.hpp"\n\n')
         if baseName == "Expr":
             f.write('#include "astprinter.hpp"\n')
+        f.write('#include "resolver.hpp"\n')
         f.write('#include "interpreter.hpp"\n\n')
         f.write("namespace lox {\n\n")
         for idx, name in enumerate(classNames):

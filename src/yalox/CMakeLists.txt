@@ -7,6 +7,7 @@ add_library(yalox_lib SHARED
     parser.cpp
     astprinter.cpp
     environment.cpp
+    resolver.cpp
     interpreter.cpp
 )
 

@@ -52,6 +52,9 @@ public:
   virtual ~Stmt() = default;
 
   // accept function for StmtVisitor
+  virtual void resolve(Resolver&) = 0;
+
+  // accept function for StmtVisitor
   virtual void execute(Interpreter&) = 0;
 };
 
@@ -63,6 +66,8 @@ class BlockStmt : public Stmt
 {
 public:
   BlockStmt(std::vector<StmtPtr> statements);
+
+  void resolve(Resolver&) override;
 
   void execute(Interpreter&) override;
 
@@ -77,6 +82,8 @@ class ExprStmt : public Stmt
 {
 public:
   ExprStmt(ExprPtr expression);
+
+  void resolve(Resolver&) override;
 
   void execute(Interpreter&) override;
 
@@ -95,6 +102,8 @@ public:
     std::vector<Token> params,
     std::vector<StmtPtr> body);
 
+  void resolve(Resolver&) override;
+
   void execute(Interpreter&) override;
 
   Token name;
@@ -110,6 +119,8 @@ class IfStmt : public Stmt
 {
 public:
   IfStmt(ExprPtr condition, StmtPtr thenBranch, StmtPtr elseBranch);
+
+  void resolve(Resolver&) override;
 
   void execute(Interpreter&) override;
 
@@ -127,6 +138,8 @@ class PrintStmt : public Stmt
 public:
   PrintStmt(ExprPtr expression);
 
+  void resolve(Resolver&) override;
+
   void execute(Interpreter&) override;
 
   ExprPtr expression;
@@ -140,6 +153,8 @@ class ReturnStmt : public Stmt
 {
 public:
   ReturnStmt(Token keyword, ExprPtr value);
+
+  void resolve(Resolver&) override;
 
   void execute(Interpreter&) override;
 
@@ -156,6 +171,8 @@ class VarStmt : public Stmt
 public:
   VarStmt(Token name, ExprPtr initializer);
 
+  void resolve(Resolver&) override;
+
   void execute(Interpreter&) override;
 
   Token name;
@@ -170,6 +187,8 @@ class WhileStmt : public Stmt
 {
 public:
   WhileStmt(ExprPtr condition, StmtPtr body);
+
+  void resolve(Resolver&) override;
 
   void execute(Interpreter&) override;
 
@@ -189,6 +208,8 @@ public:
     ExprPtr condition,
     ExprPtr increment,
     StmtPtr body);
+
+  void resolve(Resolver&) override;
 
   void execute(Interpreter&) override;
 

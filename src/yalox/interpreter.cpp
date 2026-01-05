@@ -130,6 +130,20 @@ void Interpreter::interpret(const std::vector<StmtPtr>& program)
 
 /*---------------------------------------------------------------------------*/
 
+/** Each time the resolver visits a variable, it tells the interpreter how many
+ * scopes there are between the current scope and the scope where the variable
+ * is defined. At runtime, this corresponds exactly to the number of
+ * environments between the current one and the enclosing one where the
+ * interpreter can find the variable’s value. The resolver hands that number to
+ * the interpreter by calling this function.
+ */
+void Interpreter::resolve(Expr& expr, size_t depth)
+{
+  locals_[&expr] = depth;
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject Interpreter::evaluate(Expr& expr)
 {
   return expr.evaluate(*this);
@@ -140,7 +154,14 @@ LoxObject Interpreter::evaluate(Expr& expr)
 LoxObject Interpreter::visitAssignExpr(AssignExpr& expr)
 {
   LoxObject value = evaluate(*(expr.value));
-  env_->assign(expr.name, value);
+
+  const auto it = locals_.find(&expr);
+  if ( it != locals_.end() ) {
+    env_->assignAt(it->second, expr.name, value);
+  } else {
+    globals->assign(expr.name, value);
+  }
+
   return value;
 }
 
@@ -315,7 +336,19 @@ LoxObject Interpreter::visitUnaryExpr(UnaryExpr& expr)
  */
 LoxObject Interpreter::visitVariableExpr(VariableExpr& expr)
 {
-  return env_->get(expr.name);
+  return lookUpVariable(expr.name, expr);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject Interpreter::lookUpVariable(const Token& name, VariableExpr& expr)
+{
+  const auto it = locals_.find(&expr);
+  if ( it != locals_.end() ) {
+    return env_->getAt(it->second, name);
+  } else {
+    return globals->get(name);
+  }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -402,6 +435,8 @@ void Interpreter::visitIfStmt(IfStmt& stmt)
 
 /*---------------------------------------------------------------------------*/
 
+/** The built-in print function.
+ */
 void Interpreter::visitPrintStmt(PrintStmt& stmt)
 {
   auto value = evaluate(*(stmt.expression));

@@ -44,6 +44,7 @@ public:
 
 // Forward declare ExprVisitor implementations
 class AstPrinter;
+class Resolver;
 class Interpreter;
 
 /*---------------------------------------------------------------------------*/
@@ -59,6 +60,9 @@ public:
   virtual std::string toString(AstPrinter&) = 0;
 
   // accept function for ExprVisitor
+  virtual void resolve(Resolver&) = 0;
+
+  // accept function for ExprVisitor
   virtual LoxObject evaluate(Interpreter&) = 0;
 };
 
@@ -72,6 +76,8 @@ public:
   AssignExpr(Token name, ExprPtr value);
 
   std::string toString(AstPrinter&) override;
+
+  void resolve(Resolver&) override;
 
   LoxObject evaluate(Interpreter&) override;
 
@@ -89,6 +95,8 @@ public:
   BinaryExpr(ExprPtr left, Token op, ExprPtr right);
 
   std::string toString(AstPrinter&) override;
+
+  void resolve(Resolver&) override;
 
   LoxObject evaluate(Interpreter&) override;
 
@@ -108,6 +116,8 @@ public:
 
   std::string toString(AstPrinter&) override;
 
+  void resolve(Resolver&) override;
+
   LoxObject evaluate(Interpreter&) override;
 
   ExprPtr callee;
@@ -126,6 +136,8 @@ public:
 
   std::string toString(AstPrinter&) override;
 
+  void resolve(Resolver&) override;
+
   LoxObject evaluate(Interpreter&) override;
 
   ExprPtr expression;
@@ -142,6 +154,8 @@ public:
 
   std::string toString(AstPrinter&) override;
 
+  void resolve(Resolver&) override;
+
   LoxObject evaluate(Interpreter&) override;
 
   LoxObject value;
@@ -157,6 +171,8 @@ public:
   LogicalExpr(ExprPtr left, Token op, ExprPtr right);
 
   std::string toString(AstPrinter&) override;
+
+  void resolve(Resolver&) override;
 
   LoxObject evaluate(Interpreter&) override;
 
@@ -176,6 +192,8 @@ public:
 
   std::string toString(AstPrinter&) override;
 
+  void resolve(Resolver&) override;
+
   LoxObject evaluate(Interpreter&) override;
 
   Token op;
@@ -192,6 +210,8 @@ public:
   VariableExpr(Token name);
 
   std::string toString(AstPrinter&) override;
+
+  void resolve(Resolver&) override;
 
   LoxObject evaluate(Interpreter&) override;
 
