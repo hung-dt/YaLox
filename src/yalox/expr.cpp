@@ -100,6 +100,35 @@ LoxObject CallExpr::evaluate(Interpreter& interpreter)
 
 /*---------------------------------------------------------------------------*/
 
+GetExpr::GetExpr(ExprPtr object, Token name)
+  : object(std::move(object))
+  , name(std::move(name))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string GetExpr::toString(AstPrinter& printer)
+{
+  return printer.visitGetExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void GetExpr::resolve(Resolver& r)
+{
+  return r.visitGetExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject GetExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitGetExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 GroupingExpr::GroupingExpr(ExprPtr expression)
   : expression(std::move(expression))
 {
@@ -182,6 +211,36 @@ void LogicalExpr::resolve(Resolver& r)
 LoxObject LogicalExpr::evaluate(Interpreter& interpreter)
 {
   return interpreter.visitLogicalExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+SetExpr::SetExpr(ExprPtr object, Token name, ExprPtr value)
+  : object(std::move(object))
+  , name(std::move(name))
+  , value(std::move(value))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string SetExpr::toString(AstPrinter& printer)
+{
+  return printer.visitSetExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void SetExpr::resolve(Resolver& r)
+{
+  return r.visitSetExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject SetExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitSetExpr(*this);
 }
 
 /*---------------------------------------------------------------------------*/

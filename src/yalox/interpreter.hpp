@@ -29,14 +29,17 @@ public:
   LoxObject visitAssignExpr(AssignExpr&) override;
   LoxObject visitBinaryExpr(BinaryExpr&) override;
   LoxObject visitCallExpr(CallExpr&) override;
+  LoxObject visitGetExpr(GetExpr&) override;
   LoxObject visitGroupingExpr(GroupingExpr&) override;
   LoxObject visitLiteralExpr(LiteralExpr&) override;
   LoxObject visitLogicalExpr(LogicalExpr&) override;
+  LoxObject visitSetExpr(SetExpr&) override;
   LoxObject visitUnaryExpr(UnaryExpr&) override;
   LoxObject visitVariableExpr(VariableExpr&) override;
 
   void executeBlock(const std::vector<StmtPtr>&, EnvPtr&);
   void visitBlockStmt(BlockStmt&) override;
+  void visitClassStmt(ClassStmt&) override;
   void visitExprStmt(ExprStmt&) override;
   void visitFunctionStmt(FunctionStmt&) override;
   void visitIfStmt(IfStmt&) override;
@@ -66,6 +69,7 @@ private:
   bool isTruthy(const LoxObject&) const;
 
   LoxObject lookUpVariable(const Token&, VariableExpr&);
+  LoxCallable makeLoxCallable(FunctionStmt&);
 };
 
 /*---------------------------------------------------------------------------*/

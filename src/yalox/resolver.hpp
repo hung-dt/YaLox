@@ -20,13 +20,16 @@ public:
   void visitAssignExpr(AssignExpr&) override;
   void visitBinaryExpr(BinaryExpr&) override;
   void visitCallExpr(CallExpr&) override;
+  void visitGetExpr(GetExpr&) override;
   void visitGroupingExpr(GroupingExpr&) override;
   void visitLiteralExpr(LiteralExpr&) override;
   void visitLogicalExpr(LogicalExpr&) override;
+  void visitSetExpr(SetExpr&) override;
   void visitUnaryExpr(UnaryExpr&) override;
   void visitVariableExpr(VariableExpr&) override;
 
   void visitBlockStmt(BlockStmt&) override;
+  void visitClassStmt(ClassStmt&) override;
   void visitExprStmt(ExprStmt&) override;
   void visitFunctionStmt(FunctionStmt&) override;
   void visitIfStmt(IfStmt&) override;

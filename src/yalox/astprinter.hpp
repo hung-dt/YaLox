@@ -21,6 +21,8 @@ public:
   virtual std::string visitVariableExpr(VariableExpr&) override;
   virtual std::string visitAssignExpr(AssignExpr&) override;
   virtual std::string visitCallExpr(CallExpr&) override;
+  virtual std::string visitGetExpr(GetExpr&) override;
+  virtual std::string visitSetExpr(SetExpr&) override;
 };
 
 }

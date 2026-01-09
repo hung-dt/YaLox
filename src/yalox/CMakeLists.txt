@@ -1,6 +1,7 @@
 add_library(yalox_lib SHARED
     yalox.cpp
     token.cpp
+    types.cpp
     scanner.cpp
     expr.cpp
     stmt.cpp

@@ -12,6 +12,7 @@ namespace lox {
 // Forward declare all Stmt types
 class Stmt;
 class BlockStmt;
+class ClassStmt;
 class ExprStmt;
 class FunctionStmt;
 class IfStmt;
@@ -32,6 +33,7 @@ public:
   virtual ~StmtVisitor() = default;
 
   virtual T visitBlockStmt(BlockStmt&) = 0;
+  virtual T visitClassStmt(ClassStmt&) = 0;
   virtual T visitExprStmt(ExprStmt&) = 0;
   virtual T visitFunctionStmt(FunctionStmt&) = 0;
   virtual T visitIfStmt(IfStmt&) = 0;
@@ -51,10 +53,10 @@ class Stmt
 public:
   virtual ~Stmt() = default;
 
-  // accept function for StmtVisitor
+  // accept function for StmtVisitor<void>
   virtual void resolve(Resolver&) = 0;
 
-  // accept function for StmtVisitor
+  // accept function for StmtVisitor<void>
   virtual void execute(Interpreter&) = 0;
 };
 
@@ -72,6 +74,23 @@ public:
   void execute(Interpreter&) override;
 
   std::vector<StmtPtr> statements;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/** Class statement.
+ */
+class ClassStmt : public Stmt
+{
+public:
+  ClassStmt(Token name, std::vector<StmtPtr> methods);
+
+  void resolve(Resolver&) override;
+
+  void execute(Interpreter&) override;
+
+  Token name;
+  std::vector<StmtPtr> methods;
 };
 
 /*---------------------------------------------------------------------------*/

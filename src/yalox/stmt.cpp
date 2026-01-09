@@ -28,6 +28,28 @@ void BlockStmt::execute(Interpreter& interpreter)
 
 /*---------------------------------------------------------------------------*/
 
+ClassStmt::ClassStmt(Token name, std::vector<StmtPtr> methods)
+  : name(std::move(name))
+  , methods(std::move(methods))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ClassStmt::resolve(Resolver& r)
+{
+  return r.visitClassStmt(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ClassStmt::execute(Interpreter& interpreter)
+{
+  interpreter.visitClassStmt(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 ExprStmt::ExprStmt(ExprPtr expression)
   : expression(std::move(expression))
 {

@@ -52,6 +52,7 @@ private:
 
   // Rules for statements
   StmtPtr declaration();
+  StmtPtr classDecl();
   StmtPtr funDecl(const std::string& kind);
   StmtPtr varDecl();
   StmtPtr statement();

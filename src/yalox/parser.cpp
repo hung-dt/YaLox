@@ -55,7 +55,7 @@ ExprPtr Parser::expression()
 
 /*---------------------------------------------------------------------------*/
 
-/** assignment -> IDENTIFIER "=" assignment | logic_or ;
+/** assignment -> ( call "." )? IDENTIFIER "=" assignment | logic_or ;
  */
 ExprPtr Parser::assignment()
 {
@@ -71,6 +71,13 @@ ExprPtr Parser::assignment()
     if ( varExpr ) {
       Token name = varExpr->name;
       return std::make_unique<AssignExpr>(std::move(name), std::move(value));
+    }
+
+    // if the left-hand side expression is a valid instance's property
+    auto getExpr = dynamic_cast<GetExpr*>(expr.get());
+    if ( getExpr ) {
+      return std::make_unique<SetExpr>(
+        std::move(getExpr->object), std::move(getExpr->name), std::move(value));
     }
 
     error(equals, "Invalid assignment target.");
@@ -217,7 +224,10 @@ ExprPtr Parser::unary()
 
 /*---------------------------------------------------------------------------*/
 
-/** call -> primary ( "(" arguments? ")" )* ;
+/** call -> primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+ *
+ * After a primary expression, we allow a series of any mixture of parenthesized
+ * calls and dotted property accesses.
  */
 ExprPtr Parser::call()
 {
@@ -231,6 +241,10 @@ ExprPtr Parser::call()
   while ( true ) {
     if ( match({ TokenType::LEFT_PAREN }) ) {
       expr = finishCall(std::move(expr));
+    } else if ( match({ TokenType::DOT }) ) {
+      Token name =
+        consume(TokenType::IDENTIFIER, "Expect property name after '.'.");
+      expr = std::make_unique<GetExpr>(std::move(expr), std::move(name));
     } else {
       break;
     }
@@ -311,11 +325,14 @@ ExprPtr Parser::primary()
 
 /*---------------------------------------------------------------------------*/
 
-/** declaration -> funDecl | varDecl | statement ;
+/** declaration -> classDecl | funDecl | varDecl | statement ;
  */
 StmtPtr Parser::declaration()
 {
   try {
+    if ( match({ TokenType::CLASS }) ) {
+      return classDecl();
+    }
     if ( match({ TokenType::FUN }) ) {
       return funDecl("function");
     }
@@ -327,6 +344,27 @@ StmtPtr Parser::declaration()
     synchronize();
   }
   return nullptr;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Class declaration.
+ *
+ * classDecl -> "class" IDENTIFIER "{" function* "}" ;
+ */
+StmtPtr Parser::classDecl()
+{
+  Token name = consume(TokenType::IDENTIFIER, "Expect class name.");
+  consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
+
+  std::vector<StmtPtr> methods{};
+  while ( !check(TokenType::RIGHT_BRACE) && !isAtEnd() ) {
+    methods.emplace_back(funDecl("method"));
+  }
+
+  consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
+
+  return std::make_unique<ClassStmt>(std::move(name), std::move(methods));
 }
 
 /*---------------------------------------------------------------------------*/

@@ -197,6 +197,7 @@ if __name__ == "__main__":
                 ["arguments", "std::vector<ExprPtr>"],
             ],
         },
+        {"name": "Get", "params": [["object", "ExprPtr"], ["name", "Token"]]},
         {
             "name": "Grouping",
             "params": [
@@ -218,6 +219,10 @@ if __name__ == "__main__":
             ],
         },
         {
+            "name": "Set",
+            "params": [["object", "ExprPtr"], ["name", "Token"], ["value", "ExprPtr"]],
+        },
+        {
             "name": "Unary",
             "params": [
                 ["op", "Token"],
@@ -230,6 +235,10 @@ if __name__ == "__main__":
 
     stmtTypes = [
         {"name": "Block", "params": [["statements", "std::vector<StmtPtr>"]]},
+        {
+            "name": "Class",
+            "params": [["name", "Token"], ["methods", "std::vector<StmtPtr>"]],
+        },
         {"name": "Expr", "params": [["expression", "ExprPtr"]]},
         {
             "name": "Function",

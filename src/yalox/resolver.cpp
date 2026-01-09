@@ -40,6 +40,17 @@ void Resolver::visitCallExpr(CallExpr& expr)
 
 /*---------------------------------------------------------------------------*/
 
+/** Instance properties are looked up dynamically, they don't get resolved.
+ * During resolution, we recurse into the expression to the left of the dot. The
+ * actual property access happens in the interpreter.
+ */
+void Resolver::visitGetExpr(GetExpr& expr)
+{
+  resolve(*(expr.object));
+}
+
+/*---------------------------------------------------------------------------*/
+
 void Resolver::visitGroupingExpr(GroupingExpr& expr)
 {
   resolve(*(expr.expression));
@@ -55,6 +66,14 @@ void Resolver::visitLogicalExpr(LogicalExpr& expr)
 {
   resolve(*(expr.left));
   resolve(*(expr.right));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void Resolver::visitSetExpr(SetExpr& expr)
+{
+  resolve(*(expr.value));
+  resolve(*(expr.object));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -89,6 +108,19 @@ void Resolver::visitBlockStmt(BlockStmt& stmt)
   beginScope();
   resolve(stmt.statements);
   endScope();
+}
+
+/*---------------------------------------------------------------------------*/
+
+void Resolver::visitClassStmt(ClassStmt& stmt)
+{
+  declare(stmt.name);
+  define(stmt.name);
+
+  for ( auto& method : stmt.methods ) {
+    FunctionType declaration = FunctionType::METHOD;
+    resolveFunction(static_cast<FunctionStmt&>(*method), declaration);
+  }
 }
 
 /*---------------------------------------------------------------------------*/

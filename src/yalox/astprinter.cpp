@@ -67,5 +67,19 @@ std::string AstPrinter::visitCallExpr([[maybe_unused]] CallExpr& expr)
   return "";
 }
 
+/*---------------------------------------------------------------------------*/
+
+std::string AstPrinter::visitGetExpr([[maybe_unused]] GetExpr& expr)
+{
+  return "";
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string AstPrinter::visitSetExpr([[maybe_unused]] SetExpr& expr)
+{
+  return "";
+}
+
 }
 

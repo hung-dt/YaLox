@@ -279,6 +279,20 @@ LoxObject Interpreter::visitCallExpr(CallExpr& expr)
 
 /*---------------------------------------------------------------------------*/
 
+/** Access class instance's properties (fields or methods).
+ */
+LoxObject Interpreter::visitGetExpr(GetExpr& expr)
+{
+  LoxObject object = evaluate(*(expr.object));
+  if ( object && std::holds_alternative<LoxInstance>(object.value()) ) {
+    return std::get<LoxInstance>(object.value()).get(expr.name);
+  }
+
+  throw RuntimeError(expr.name, "Only instances have properties.");
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject Interpreter::visitGroupingExpr(GroupingExpr& expr)
 {
   return evaluate(*(expr.expression));
@@ -308,6 +322,35 @@ LoxObject Interpreter::visitLogicalExpr(LogicalExpr& expr)
   }
 
   return evaluate(*(expr.right));
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** We evaluate the object whose property is being set and check to see if it’s
+ * a LoxInstance. If not, that’s a runtime error. Otherwise, we evaluate the
+ * value being set and store it on the instance.
+ */
+LoxObject Interpreter::visitSetExpr(SetExpr& expr)
+{
+  LoxObject object = evaluate(*(expr.object));
+
+  if ( object && std::holds_alternative<LoxInstance>(object.value()) ) {
+    auto value = evaluate(*(expr.value));
+    std::get<LoxInstance>(object.value()).set(expr.name, value);
+
+    // we need to reassign the object to the locals_ scope or to the environment
+    const auto it = locals_.find(expr.object.get());
+    if ( it != locals_.end() ) {
+      env_->assignAt(
+        it->second, static_cast<VariableExpr&>(*(expr.object)).name, object);
+    } else {
+      globals->assign(static_cast<VariableExpr&>(*(expr.object)).name, object);
+    }
+
+    return value;
+  }
+
+  throw RuntimeError(expr.name, "Only instance have fields.");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -379,6 +422,30 @@ void Interpreter::visitBlockStmt(BlockStmt& stmt)
 
 /*---------------------------------------------------------------------------*/
 
+/** When a class is called, it instantiates a new LoxInstance for the called
+ * class and returns it.
+ */
+void Interpreter::visitClassStmt(ClassStmt& stmt)
+{
+  LoxCallable lc;
+  lc.arity = 0;
+  lc.name = stmt.name.lexeme();
+
+  // Gather methods
+  for ( auto& methodStmt : stmt.methods ) {
+    auto method = static_cast<FunctionStmt*>(methodStmt.get());
+    lc.methods.emplace(method->name.lexeme(), makeLoxCallable(*method));
+  }
+
+  lc.call = [lc](const std::vector<LoxObject>& /*args*/) -> LoxObject {
+    return LoxInstance{ lc, lc.name + " instance" };
+  };
+
+  env_->define(stmt.name.lexeme(), lc);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void Interpreter::visitExprStmt(ExprStmt& stmt)
 {
   evaluate(*(stmt.expression));
@@ -390,9 +457,14 @@ void Interpreter::visitExprStmt(ExprStmt& stmt)
  */
 void Interpreter::visitFunctionStmt(FunctionStmt& stmt)
 {
-  auto func = std::make_shared<FunctionStmt>(
-    stmt.name, std::move(stmt.params), std::move(stmt.body));
+  env_->define(stmt.name.lexeme(), makeLoxCallable(stmt));
+}
 
+/*---------------------------------------------------------------------------*/
+
+LoxCallable Interpreter::makeLoxCallable(FunctionStmt& funcStmt)
+{
+  auto func = &funcStmt;
   auto closure = this->env_;
 
   LoxCallable lc;
@@ -417,7 +489,7 @@ void Interpreter::visitFunctionStmt(FunctionStmt& stmt)
   };
   lc.name = "<fn " + func->name.lexeme() + ">";
 
-  env_->define(func->name.lexeme(), std::move(lc));
+  return lc;
 }
 
 /*---------------------------------------------------------------------------*/
