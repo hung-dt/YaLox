@@ -1,12 +1,13 @@
 #pragma once
 
-#include "token.hpp"
+#include "aliases.hpp"
 #include "countedptr.hpp"
 
-#include <string>
 #include <unordered_map>
 
 namespace lox {
+
+class Token;
 
 class Environment;
 
@@ -19,13 +20,13 @@ class Environment
 public:
   Environment(const EnvPtr& enclosing = nullptr);
 
-  void define(const std::string& name, const LoxObject& value);
+  void define(const std::string& name, LoxObject value);
 
   const LoxObject& get(const Token& name) const;
 
   const LoxObject& getAt(size_t distance, const Token& name);
 
-  void assign(const Token& name, const LoxObject& value);
+  void assign(const Token& name, LoxObject value);
 
   void assignAt(size_t distance, const Token& name, const LoxObject& value);
 

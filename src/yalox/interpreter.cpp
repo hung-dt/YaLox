@@ -97,7 +97,7 @@ Interpreter::Interpreter()
   env_ = globals;
 
   // Built-in clock() function
-  globals->define("clock", LoxCallable{ 0, clockFunc, "<native fn>" });
+  globals->define("clock", LoxCallable{ 0, nullptr, clockFunc, "<native fn>" });
 }
 
 /*---------------------------------------------------------------------------*/
@@ -117,11 +117,12 @@ LoxObject Interpreter::interpret(Expr& expr)
 
 /** Execute a Lox program.
  */
-void Interpreter::interpret(const std::vector<StmtPtr>& program)
+void Interpreter::interpret(std::vector<StmtPtr> statements)
 {
   try {
-    for ( const auto& stmt : program ) {
+    for ( auto& stmt : statements ) {
       stmt->execute(*this);
+      funcStmts_.emplace_back(std::move(stmt));
     }
   } catch ( const RuntimeError& error ) {
     YaLox::runtimeError(error);
@@ -285,7 +286,15 @@ LoxObject Interpreter::visitGetExpr(GetExpr& expr)
 {
   LoxObject object = evaluate(*(expr.object));
   if ( object && std::holds_alternative<LoxInstance>(object.value()) ) {
-    return std::get<LoxInstance>(object.value()).get(expr.name);
+    auto& prop = std::get<LoxInstance>(object.value()).get(expr.name);
+    if ( prop && std::holds_alternative<LoxCallable>(prop.value()) ) {
+      auto& func = std::get<LoxCallable>(prop.value());
+      // Bind "this" to the current instance for methods
+      EnvPtr methodEnv{ new Environment{ env_ } };
+      methodEnv->define("this", object);  // bind "this" to the current instance
+      prop = makeLoxCallable(*(func.funcStmt), methodEnv);
+    }
+    return prop;
   }
 
   throw RuntimeError(expr.name, "Only instances have properties.");
@@ -355,6 +364,20 @@ LoxObject Interpreter::visitSetExpr(SetExpr& expr)
 
 /*---------------------------------------------------------------------------*/
 
+/** Evaluate a "this" expression and return the bound instance for the current
+ * class.
+ *
+ * This function looks up the instance referenced by the 'this' keyword in the
+ * interpreter's environment/resolution context and returns it as a LoxObject.
+ * It ensures that "this" is used only within a valid class instance context.
+ */
+LoxObject Interpreter::visitThisExpr(ThisExpr& expr)
+{
+  return lookUpVariable(expr.keyword, expr);
+}
+
+/*---------------------------------------------------------------------------*/
+
 LoxObject Interpreter::visitUnaryExpr(UnaryExpr& expr)
 {
   auto right = evaluate(*(expr.right));
@@ -384,7 +407,7 @@ LoxObject Interpreter::visitVariableExpr(VariableExpr& expr)
 
 /*---------------------------------------------------------------------------*/
 
-LoxObject Interpreter::lookUpVariable(const Token& name, VariableExpr& expr)
+LoxObject Interpreter::lookUpVariable(const Token& name, Expr& expr)
 {
   const auto it = locals_.find(&expr);
   if ( it != locals_.end() ) {
@@ -434,14 +457,14 @@ void Interpreter::visitClassStmt(ClassStmt& stmt)
   // Gather methods
   for ( auto& methodStmt : stmt.methods ) {
     auto method = static_cast<FunctionStmt*>(methodStmt.get());
-    lc.methods.emplace(method->name.lexeme(), makeLoxCallable(*method));
+    lc.methods.emplace(method->name.lexeme(), makeLoxCallable(*method, env_));
   }
 
   lc.call = [lc](const std::vector<LoxObject>& /*args*/) -> LoxObject {
     return LoxInstance{ lc, lc.name + " instance" };
   };
 
-  env_->define(stmt.name.lexeme(), lc);
+  env_->define(stmt.name.lexeme(), std::move(lc));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -457,18 +480,19 @@ void Interpreter::visitExprStmt(ExprStmt& stmt)
  */
 void Interpreter::visitFunctionStmt(FunctionStmt& stmt)
 {
-  env_->define(stmt.name.lexeme(), makeLoxCallable(stmt));
+  env_->define(stmt.name.lexeme(), makeLoxCallable(stmt, env_));
 }
 
 /*---------------------------------------------------------------------------*/
 
-LoxCallable Interpreter::makeLoxCallable(FunctionStmt& funcStmt)
+LoxCallable
+Interpreter::makeLoxCallable(FunctionStmt& funcStmt, const EnvPtr& closure)
 {
   auto func = &funcStmt;
-  auto closure = this->env_;
 
   LoxCallable lc;
   lc.arity = func->params.size();
+  lc.funcStmt = func;
   lc.call =
     [this, func, closure](const std::vector<LoxObject>& args) -> LoxObject {
     assert(func->params.size() == args.size());
@@ -541,7 +565,7 @@ void Interpreter::visitVarStmt(VarStmt& stmt)
     value = evaluate(*(stmt.initializer));
   }
 
-  env_->define(stmt.name.lexeme(), value);
+  env_->define(stmt.name.lexeme(), std::move(value));
 }
 
 /*---------------------------------------------------------------------------*/

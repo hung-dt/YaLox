@@ -102,7 +102,7 @@ void YaLox::run(const std::string& source)
   // auto value = interpreter_.interpret(*expression);
   // std::cout << toString(value) << '\n';
 
-  interpreter_.interpret(statements);
+  interpreter_.interpret(std::move(statements));
 }
 
 /*---------------------------------------------------------------------------*/

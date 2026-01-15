@@ -81,5 +81,11 @@ std::string AstPrinter::visitSetExpr([[maybe_unused]] SetExpr& expr)
   return "";
 }
 
+/*---------------------------------------------------------------------------*/
+
+std::string AstPrinter::visitThisExpr(ThisExpr& expr)
+{
+  return "(this " + expr.keyword.lexeme() + ")";
 }
 
+}  // namespace lox

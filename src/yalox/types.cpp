@@ -1,6 +1,4 @@
 #include "types.hpp"
-
-#include "token.hpp"
 #include "interpreter.hpp"
 
 namespace lox {
@@ -9,9 +7,9 @@ namespace lox {
 
 /** Get value of an instance's property by its name.
  */
-const LoxObject& LoxInstance::get(const Token& name) const
+LoxObject& LoxInstance::get(const Token& name)
 {
-  const auto it = fields.find(name.lexeme());
+  auto it = fields.find(name.lexeme());
   if ( it != fields.end() ) {
     return it->second;
   }
@@ -32,9 +30,9 @@ void LoxInstance::set(const Token& name, const LoxObject& value)
 
 /*---------------------------------------------------------------------------*/
 
-const LoxObject& LoxCallable::getMethod(const Token& name) const
+LoxObject& LoxCallable::getMethod(const Token& name)
 {
-  const auto it = methods.find(name.lexeme());
+  auto it = methods.find(name.lexeme());
   if ( it != methods.end() ) {
     return it->second;
   }

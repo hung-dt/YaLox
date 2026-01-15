@@ -1,5 +1,6 @@
 #include "resolver.hpp"
 #include "yalox.hpp"
+
 #include <cassert>
 
 namespace lox {
@@ -78,6 +79,18 @@ void Resolver::visitSetExpr(SetExpr& expr)
 
 /*---------------------------------------------------------------------------*/
 
+void Resolver::visitThisExpr(ThisExpr& expr)
+{
+  if ( currentClassType_ == ClassType::NONE ) {
+    YaLox::error(expr.keyword, "Cannot use 'this' outside of a class.");
+    return;
+  }
+
+  resolveLocal(expr, expr.keyword);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void Resolver::visitUnaryExpr(UnaryExpr& expr)
 {
   resolve(*(expr.right));
@@ -114,13 +127,25 @@ void Resolver::visitBlockStmt(BlockStmt& stmt)
 
 void Resolver::visitClassStmt(ClassStmt& stmt)
 {
+  auto enclosingClassType = currentClassType_;
+  currentClassType_ = ClassType::CLASS;
+
   declare(stmt.name);
   define(stmt.name);
+
+  // Before we step in and start resolving the method bodies, we push a new
+  // scope and define "this" in it as if it were a variable. This lets us treat
+  // "this" just like any other local variable when we resolve it in the method.
+  beginScope();
+  scopes_.back()["this"] = true;
 
   for ( auto& method : stmt.methods ) {
     FunctionType declaration = FunctionType::METHOD;
     resolveFunction(static_cast<FunctionStmt&>(*method), declaration);
   }
+
+  currentClassType_ = enclosingClassType;
+  endScope();
 }
 
 /*---------------------------------------------------------------------------*/

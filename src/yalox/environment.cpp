@@ -16,9 +16,9 @@ Environment::Environment(const EnvPtr& enclosing)
 
 /*---------------------------------------------------------------------------*/
 
-void Environment::define(const std::string& name, const LoxObject& value)
+void Environment::define(const std::string& name, LoxObject value)
 {
-  values_[name] = value;
+  values_[name] = std::move(value);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -71,12 +71,12 @@ Environment& Environment::ancestor(size_t distance)
  *
  * Throws if the variable does not exist.
  */
-void Environment::assign(const Token& name, const LoxObject& value)
+void Environment::assign(const Token& name, LoxObject value)
 {
   // assign for current scope
   auto it = values_.find(name.lexeme());
   if ( it != values_.end() ) {
-    it->second = value;
+    it->second = std::move(value);
     return;
   }
 

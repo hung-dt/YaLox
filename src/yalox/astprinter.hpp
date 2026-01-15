@@ -23,6 +23,7 @@ public:
   virtual std::string visitCallExpr(CallExpr&) override;
   virtual std::string visitGetExpr(GetExpr&) override;
   virtual std::string visitSetExpr(SetExpr&) override;
+  virtual std::string visitThisExpr(ThisExpr&) override;
 };
 
 }

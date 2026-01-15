@@ -25,6 +25,7 @@ public:
   void visitLiteralExpr(LiteralExpr&) override;
   void visitLogicalExpr(LogicalExpr&) override;
   void visitSetExpr(SetExpr&) override;
+  void visitThisExpr(ThisExpr&) override;
   void visitUnaryExpr(UnaryExpr&) override;
   void visitVariableExpr(VariableExpr&) override;
 
@@ -40,6 +41,19 @@ public:
   void visitForStmt(ForStmt&) override;
 
 private:
+  enum class FunctionType
+  {
+    NONE,
+    FUNC,
+    METHOD
+  };
+
+  enum class ClassType
+  {
+    NONE,
+    CLASS
+  };
+
   Interpreter& intpr_;
 
   /** The scope stack is only used for local block scopes. This field keeps
@@ -56,6 +70,8 @@ private:
   std::vector<Scope> scopes_;
 
   FunctionType currentFuncType_{ FunctionType::NONE };
+
+  ClassType currentClassType_{ ClassType::NONE };
 
   void resolve(Expr&);
   void resolve(Stmt&);

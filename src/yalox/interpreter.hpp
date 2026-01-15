@@ -22,7 +22,7 @@ public:
 
   LoxObject interpret(Expr&);
 
-  void interpret(const std::vector<StmtPtr>&);
+  void interpret(std::vector<StmtPtr>);
 
   void resolve(Expr&, size_t depth);
 
@@ -34,6 +34,7 @@ public:
   LoxObject visitLiteralExpr(LiteralExpr&) override;
   LoxObject visitLogicalExpr(LogicalExpr&) override;
   LoxObject visitSetExpr(SetExpr&) override;
+  LoxObject visitThisExpr(ThisExpr&) override;
   LoxObject visitUnaryExpr(UnaryExpr&) override;
   LoxObject visitVariableExpr(VariableExpr&) override;
 
@@ -58,6 +59,8 @@ private:
   // its resolved data.
   std::unordered_map<Expr*, size_t> locals_;
 
+  std::vector<StmtPtr> funcStmts_;
+
   LoxObject evaluate(Expr&);
 
   void validateNumberOperand(const Token& op, const LoxObject& operand) const;
@@ -68,8 +71,8 @@ private:
 
   bool isTruthy(const LoxObject&) const;
 
-  LoxObject lookUpVariable(const Token&, VariableExpr&);
-  LoxCallable makeLoxCallable(FunctionStmt&);
+  LoxObject lookUpVariable(const Token&, Expr&);
+  LoxCallable makeLoxCallable(FunctionStmt&, const EnvPtr&);
 };
 
 /*---------------------------------------------------------------------------*/

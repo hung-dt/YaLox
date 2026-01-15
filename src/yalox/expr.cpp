@@ -245,6 +245,34 @@ LoxObject SetExpr::evaluate(Interpreter& interpreter)
 
 /*---------------------------------------------------------------------------*/
 
+ThisExpr::ThisExpr(Token keyword)
+  : keyword(std::move(keyword))
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string ThisExpr::toString(AstPrinter& printer)
+{
+  return printer.visitThisExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ThisExpr::resolve(Resolver& r)
+{
+  return r.visitThisExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
+LoxObject ThisExpr::evaluate(Interpreter& interpreter)
+{
+  return interpreter.visitThisExpr(*this);
+}
+
+/*---------------------------------------------------------------------------*/
+
 UnaryExpr::UnaryExpr(Token op, ExprPtr right)
   : op(std::move(op))
   , right(std::move(right))

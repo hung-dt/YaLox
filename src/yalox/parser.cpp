@@ -291,8 +291,8 @@ ExprPtr Parser::finishCall(ExprPtr callee)
 
 /** The primary rule:
  *
- * primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" |
- * IDENTIFIER ;
+ * primary -> NUMBER | STRING | "true" | "false" | "nil" | "this" | "("
+ * expression ")" | IDENTIFIER ;
  */
 ExprPtr Parser::primary()
 {
@@ -307,6 +307,10 @@ ExprPtr Parser::primary()
 
   if ( match({ TokenType::NUMBER, TokenType::STRING }) ) {
     return std::make_unique<LiteralExpr>(previous().literal());
+  }
+
+  if ( match({ TokenType::THIS }) ) {
+    return std::make_unique<ThisExpr>(previous());
   }
 
   if ( match({ TokenType::IDENTIFIER }) ) {

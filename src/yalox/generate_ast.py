@@ -223,6 +223,10 @@ if __name__ == "__main__":
             "params": [["object", "ExprPtr"], ["name", "Token"], ["value", "ExprPtr"]],
         },
         {
+            "name": "This",
+            "params": [["keyword", "Token"]],
+        },
+        {
             "name": "Unary",
             "params": [
                 ["op", "Token"],

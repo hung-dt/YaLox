@@ -1,26 +1,16 @@
 #pragma once
 
-#include <string>
-#include <optional>
-#include <variant>
+#include "aliases.hpp"
+
 #include <functional>
 
 namespace lox {
 
 class Token;
 
-class LoxCallable;
-
-class LoxInstance;
+class FunctionStmt;
 
 /*---------------------------------------------------------------------------*/
-
-// Lox values can be number, string, bool, callable (function, class)
-using LoxValueType =
-  std::variant<double, std::string, bool, LoxCallable, LoxInstance>;
-
-// or nil
-using LoxObject = std::optional<LoxValueType>;
 
 using LoxFunction = std::function<LoxObject(const std::vector<LoxObject>&)>;
 
@@ -35,6 +25,8 @@ class LoxCallable
 public:
   size_t arity{};
 
+  FunctionStmt* funcStmt{};
+
   LoxFunction call;
 
   std::string name{};
@@ -43,16 +35,7 @@ public:
   // (LoxCallable) and are accessed through its instances.
   std::unordered_map<std::string, LoxObject> methods{};
 
-  const LoxObject& getMethod(const Token& name) const;
-};
-
-/*---------------------------------------------------------------------------*/
-
-enum class FunctionType
-{
-  NONE,
-  FUNC,
-  METHOD
+  LoxObject& getMethod(const Token& name);
 };
 
 /*---------------------------------------------------------------------------*/
@@ -70,7 +53,7 @@ public:
   // LoxObject
   std::unordered_map<std::string, LoxObject> fields{};
 
-  const LoxObject& get(const Token& name) const;
+  LoxObject& get(const Token& name);
 
   void set(const Token& name, const LoxObject& value);
 };
