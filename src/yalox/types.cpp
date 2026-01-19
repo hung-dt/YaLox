@@ -1,6 +1,8 @@
 #include "types.hpp"
 #include "interpreter.hpp"
 
+#include <sstream>
+
 namespace lox {
 
 /*---------------------------------------------------------------------------*/
@@ -9,8 +11,7 @@ namespace lox {
  */
 LoxObject& LoxInstance::get(const Token& name)
 {
-  auto it = fields.find(name.lexeme());
-  if ( it != fields.end() ) {
+  if ( auto it = fields.find(name.lexeme()); it != fields.end() ) {
     return it->second;
   }
 
@@ -32,12 +33,24 @@ void LoxInstance::set(const Token& name, const LoxObject& value)
 
 LoxObject& LoxCallable::getMethod(const Token& name)
 {
-  auto it = methods.find(name.lexeme());
-  if ( it != methods.end() ) {
+  if ( auto it = methods.find(name.lexeme()); it != methods.end() ) {
     return it->second;
   }
 
   throw RuntimeError(name, "Undefined method '" + name.lexeme() + "'.");
+}
+
+/*---------------------------------------------------------------------------*/
+
+std::string LoxInstance::toString() const
+{
+  std::ostringstream os;
+  os << "<" << name << ">";
+  // os << "<" << name << ">:\n";
+  // for ( const auto& [fieldName, fieldValue] : fields ) {
+  //   os << "  " << fieldName << " = " << lox::toString(fieldValue) << '\n';
+  // }
+  return os.str();
 }
 
 }  // namespace lox

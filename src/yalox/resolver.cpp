@@ -198,6 +198,10 @@ void Resolver::visitReturnStmt(ReturnStmt& stmt)
   }
 
   if ( stmt.value ) {
+    if ( currentFuncType_ == FunctionType::INIT ) {
+      YaLox::error(stmt.keyword, "Cannot return a value from an initializer.");
+    }
+
     resolve(*(stmt.value));
   }
 }
@@ -345,6 +349,9 @@ void Resolver::resolveLocal(Expr& expr, const Token& name)
 void Resolver::resolveFunction(FunctionStmt& func, FunctionType type)
 {
   auto enclosingFuncType = currentFuncType_;
+  if ( type == FunctionType::METHOD && func.name.lexeme() == "init" ) {
+    type = FunctionType::INIT;
+  }
   currentFuncType_ = type;
 
   beginScope();

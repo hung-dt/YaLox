@@ -31,6 +31,9 @@ public:
     env_ = original_;  // now restore the original env pointer
   }
 
+  EnvBlockGuard(const EnvBlockGuard&) = delete;
+  EnvBlockGuard& operator=(const EnvBlockGuard&) = delete;
+
 private:
   EnvPtr& env_;
   EnvPtr original_;
@@ -122,6 +125,9 @@ void Interpreter::interpret(std::vector<StmtPtr> statements)
   try {
     for ( auto& stmt : statements ) {
       stmt->execute(*this);
+
+      // Store statements so that function/class declaration statement pointers
+      // persist to be referenced later when calling them.
       funcStmts_.emplace_back(std::move(stmt));
     }
   } catch ( const RuntimeError& error ) {
@@ -156,8 +162,7 @@ LoxObject Interpreter::visitAssignExpr(AssignExpr& expr)
 {
   LoxObject value = evaluate(*(expr.value));
 
-  const auto it = locals_.find(&expr);
-  if ( it != locals_.end() ) {
+  if ( const auto it = locals_.find(&expr); it != locals_.end() ) {
     env_->assignAt(it->second, expr.name, value);
   } else {
     globals->assign(expr.name, value);
@@ -285,19 +290,33 @@ LoxObject Interpreter::visitCallExpr(CallExpr& expr)
 LoxObject Interpreter::visitGetExpr(GetExpr& expr)
 {
   LoxObject object = evaluate(*(expr.object));
-  if ( object && std::holds_alternative<LoxInstance>(object.value()) ) {
-    auto& prop = std::get<LoxInstance>(object.value()).get(expr.name);
+  if ( object && std::holds_alternative<LoxInstancePtr>(object.value()) ) {
+    auto& prop = std::get<LoxInstancePtr>(object.value())->get(expr.name);
     if ( prop && std::holds_alternative<LoxCallable>(prop.value()) ) {
       auto& func = std::get<LoxCallable>(prop.value());
       // Bind "this" to the current instance for methods
-      EnvPtr methodEnv{ new Environment{ env_ } };
-      methodEnv->define("this", object);  // bind "this" to the current instance
-      prop = makeLoxCallable(*(func.funcStmt), methodEnv);
+      bindInstance(func, object);
     }
     return prop;
   }
 
   throw RuntimeError(expr.name, "Only instances have properties.");
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Create a new environment nestled inside the method's original closure. We
+ * declare "this" as a variable in that environment and bind it to the given
+ * instance, the instance that the method is being accessed from. When the
+ * method is called, that will become the parent of the method's body
+ * environment.
+ */
+void Interpreter::bindInstance(LoxCallable& func, const LoxObject& instance)
+{
+  EnvPtr methodEnv{ new Environment{ env_ } };
+  methodEnv->define("this", instance);
+  func = makeLoxCallable(
+    *(func.funcStmt), methodEnv, func.funcStmt->name.lexeme() == "init");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -343,10 +362,9 @@ LoxObject Interpreter::visitSetExpr(SetExpr& expr)
 {
   LoxObject object = evaluate(*(expr.object));
 
-  if ( object && std::holds_alternative<LoxInstance>(object.value()) ) {
+  if ( object && std::holds_alternative<LoxInstancePtr>(object.value()) ) {
     auto value = evaluate(*(expr.value));
-    std::get<LoxInstance>(object.value()).set(expr.name, value);
-
+    std::get<LoxInstancePtr>(object.value())->set(expr.name, value);
     // we need to reassign the object to the locals_ scope or to the environment
     const auto it = locals_.find(expr.object.get());
     if ( it != locals_.end() ) {
@@ -355,7 +373,6 @@ LoxObject Interpreter::visitSetExpr(SetExpr& expr)
     } else {
       globals->assign(static_cast<VariableExpr&>(*(expr.object)).name, object);
     }
-
     return value;
   }
 
@@ -409,9 +426,8 @@ LoxObject Interpreter::visitVariableExpr(VariableExpr& expr)
 
 LoxObject Interpreter::lookUpVariable(const Token& name, Expr& expr)
 {
-  const auto it = locals_.find(&expr);
-  if ( it != locals_.end() ) {
-    return env_->getAt(it->second, name);
+  if ( const auto it = locals_.find(&expr); it != locals_.end() ) {
+    return env_->getAt(it->second, name.lexeme());
   } else {
     return globals->get(name);
   }
@@ -447,6 +463,9 @@ void Interpreter::visitBlockStmt(BlockStmt& stmt)
 
 /** When a class is called, it instantiates a new LoxInstance for the called
  * class and returns it.
+ *
+ * Class's instance can be initialized with init() method and provided
+ * arguments: var obj = MyClass( arg1, arg2 )
  */
 void Interpreter::visitClassStmt(ClassStmt& stmt)
 {
@@ -457,11 +476,28 @@ void Interpreter::visitClassStmt(ClassStmt& stmt)
   // Gather methods
   for ( auto& methodStmt : stmt.methods ) {
     auto method = static_cast<FunctionStmt*>(methodStmt.get());
-    lc.methods.emplace(method->name.lexeme(), makeLoxCallable(*method, env_));
+    lc.methods.emplace(
+      method->name.lexeme(),
+      makeLoxCallable(*method, env_, method->name.lexeme() == "init"));
   }
 
-  lc.call = [lc](const std::vector<LoxObject>& /*args*/) -> LoxObject {
-    return LoxInstance{ lc, lc.name + " instance" };
+  // Arguments for init() method
+  if ( auto it = lc.methods.find("init"); it != lc.methods.end() ) {
+    lc.arity = std::get<LoxCallable>(it->second.value()).arity;
+  }
+
+  lc.call = [this,
+             lc](const std::vector<LoxObject>& args) mutable -> LoxObject {
+    auto instance =
+      LoxInstancePtr(new LoxInstance{ lc, lc.name + " instance" });
+
+    // Look for init() method and execute it to initialize a class's instance
+    if ( auto it = lc.methods.find("init"); it != lc.methods.end() ) {
+      auto& initFunc = std::get<LoxCallable>(it->second.value());
+      bindInstance(initFunc, instance);
+      initFunc.call(args);
+    }
+    return instance;
   };
 
   env_->define(stmt.name.lexeme(), std::move(lc));
@@ -480,21 +516,23 @@ void Interpreter::visitExprStmt(ExprStmt& stmt)
  */
 void Interpreter::visitFunctionStmt(FunctionStmt& stmt)
 {
-  env_->define(stmt.name.lexeme(), makeLoxCallable(stmt, env_));
+  env_->define(stmt.name.lexeme(), makeLoxCallable(stmt, env_, false));
 }
 
 /*---------------------------------------------------------------------------*/
 
-LoxCallable
-Interpreter::makeLoxCallable(FunctionStmt& funcStmt, const EnvPtr& closure)
+LoxCallable Interpreter::makeLoxCallable(
+  FunctionStmt& funcStmt,
+  const EnvPtr& closure,
+  bool isInit)
 {
   auto func = &funcStmt;
 
   LoxCallable lc;
   lc.arity = func->params.size();
   lc.funcStmt = func;
-  lc.call =
-    [this, func, closure](const std::vector<LoxObject>& args) -> LoxObject {
+  lc.call = [this, func, closure, isInit](
+              const std::vector<LoxObject>& args) -> LoxObject {
     assert(func->params.size() == args.size());
 
     EnvPtr funcEnv{ new Environment{ closure } };
@@ -506,11 +544,18 @@ Interpreter::makeLoxCallable(FunctionStmt& funcStmt, const EnvPtr& closure)
     try {
       this->executeBlock(func->body, funcEnv);
     } catch ( const ReturnValue& ret ) {
+      // empty early return returns "this" instead of nil
+      if ( isInit ) return closure->getAt(0, "this");
+
       return ret.value;
     }
 
+    // directly call init() always return this
+    if ( isInit ) return closure->getAt(0, "this");
+
     return {};
   };
+
   lc.name = "<fn " + func->name.lexeme() + ">";
 
   return lc;

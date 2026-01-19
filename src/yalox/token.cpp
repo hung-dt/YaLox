@@ -122,8 +122,8 @@ std::string toString(const LoxObject& obj)
       return std::get<bool>(exprValue) ? "true" : "false";
     } else if ( std::holds_alternative<LoxCallable>(exprValue) ) {
       return std::get<LoxCallable>(exprValue).name;
-    } else if ( std::holds_alternative<LoxInstance>(exprValue) ) {
-      return std::get<LoxInstance>(exprValue).name;
+    } else if ( std::holds_alternative<LoxInstancePtr>(exprValue) ) {
+      return std::get<LoxInstancePtr>(exprValue)->toString();
     }
     return "\"" + std::get<std::string>(exprValue) + "\"";
   }

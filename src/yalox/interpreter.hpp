@@ -72,7 +72,8 @@ private:
   bool isTruthy(const LoxObject&) const;
 
   LoxObject lookUpVariable(const Token&, Expr&);
-  LoxCallable makeLoxCallable(FunctionStmt&, const EnvPtr&);
+  LoxCallable makeLoxCallable(FunctionStmt&, const EnvPtr&, bool);
+  void bindInstance(LoxCallable&, const LoxObject&);
 };
 
 /*---------------------------------------------------------------------------*/

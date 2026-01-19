@@ -24,7 +24,7 @@ public:
 
   const LoxObject& get(const Token& name) const;
 
-  const LoxObject& getAt(size_t distance, const Token& name);
+  const LoxObject& getAt(size_t distance, const std::string& name);
 
   void assign(const Token& name, LoxObject value);
 

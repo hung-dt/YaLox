@@ -45,6 +45,7 @@ private:
   {
     NONE,
     FUNC,
+    INIT,
     METHOD
   };
 

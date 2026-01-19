@@ -56,6 +56,8 @@ public:
   LoxObject& get(const Token& name);
 
   void set(const Token& name, const LoxObject& value);
+
+  std::string toString() const;
 };
 
 }  // namespace lox

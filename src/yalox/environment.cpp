@@ -26,8 +26,7 @@ void Environment::define(const std::string& name, LoxObject value)
 const LoxObject& Environment::get(const Token& name) const
 {
   // get from current scope
-  auto it = values_.find(name.lexeme());
-  if ( it != values_.end() ) {
+  if ( auto it = values_.find(name.lexeme()); it != values_.end() ) {
     return it->second;
   }
 
@@ -46,9 +45,9 @@ const LoxObject& Environment::get(const Token& name) const
  * It doesn't even have to check to see if the variable is there - we know it
  * will be because the resolver already found it before.
  */
-const LoxObject& Environment::getAt(size_t distance, const Token& name)
+const LoxObject& Environment::getAt(size_t distance, const std::string& name)
 {
-  return ancestor(distance).values_[name.lexeme()];
+  return ancestor(distance).values_[name];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -74,8 +73,7 @@ Environment& Environment::ancestor(size_t distance)
 void Environment::assign(const Token& name, LoxObject value)
 {
   // assign for current scope
-  auto it = values_.find(name.lexeme());
-  if ( it != values_.end() ) {
+  if ( auto it = values_.find(name.lexeme()); it != values_.end() ) {
     it->second = std::move(value);
     return;
   }
