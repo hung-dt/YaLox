@@ -3,6 +3,7 @@ add_executable(yaclox
     memory.c
     debug.c
     value.c
+    vm.c
     main.c
 )
 

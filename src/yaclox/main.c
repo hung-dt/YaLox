@@ -1,11 +1,12 @@
-#include "common.h"
 #include "chunk.h"
-#include "debug.h"
+#include "vm.h"
 
 /*---------------------------------------------------------------------------*/
 
 int main(int argc, const char* argv[])
 {
+  initVM();
+
   Chunk chunk;
   initChunk(&chunk);
 
@@ -16,9 +17,25 @@ int main(int argc, const char* argv[])
   // Write the one-byte constant index operand
   appendChunk(&chunk, (uint8_t)constant, 123);
 
+  constant = addConstant(&chunk, 3.4);
+  appendChunk(&chunk, OP_CONSTANT, 123);
+  appendChunk(&chunk, (uint8_t)constant, 123);
+
+  appendChunk(&chunk, OP_ADD, 123);
+
+  constant = addConstant(&chunk, 5.6);
+  appendChunk(&chunk, OP_CONSTANT, 123);
+  appendChunk(&chunk, (uint8_t)constant, 123);
+
+  appendChunk(&chunk, OP_DIVIDE, 123);
+  appendChunk(&chunk, OP_NEGATE, 123);
   appendChunk(&chunk, OP_RETURN, 123);
 
-  disassembleChunk(&chunk, "test chunk");
+  // disassembleChunk(&chunk, "test chunk");
+
+  interpret(&chunk);
+
+  freeVM();
 
   freeChunk(&chunk);
 
