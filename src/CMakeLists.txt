@@ -12,3 +12,7 @@ add_custom_target(gen_buildtime_hpp
 #------------------------------------------------------------------------------
 # The tree-walk interpreter yalox
 add_subdirectory(yalox)
+
+#------------------------------------------------------------------------------
+# The bytecode compiler yaclox
+add_subdirectory(yaclox)
