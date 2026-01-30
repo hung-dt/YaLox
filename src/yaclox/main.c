@@ -1,43 +1,96 @@
 #include "chunk.h"
 #include "vm.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/*---------------------------------------------------------------------------*/
+
+/** Show a prompt and let user interact with Lox.
+ */
+static void repl()
+{
+  char line[1024];
+  printf("YaClox - Yet another C Lox");
+  for ( ;; ) {
+    printf("> ");
+
+    if ( !fgets(line, sizeof(line), stdin) ) {
+      printf("\n");
+      break;
+    }
+
+    interpret(line);
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Read the whole source file into a newly allocated buffer and return it.
+ */
+static char* readFile(const char* filePath)
+{
+  FILE* file = fopen(filePath, "rb");
+  if ( file == NULL ) {
+    fprintf(stderr, "Could not open file \"%s\".\n", filePath);
+    exit(ERR_IOERR);
+  }
+
+  fseek(file, 0L, SEEK_END);
+  size_t fileSize = ftell(file);
+  rewind(file);
+
+  char* buffer = (char*)malloc(fileSize + 1);
+  if ( buffer == NULL ) {
+    fprintf(stderr, "Not enough memory to read \"%s\".\n", filePath);
+    // fclose(file);
+    exit(ERR_IOERR);
+  }
+
+  size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
+  if ( bytesRead < fileSize ) {
+    fprintf(stderr, "Could not read file \"%s\".\n", filePath);
+    // free(buffer);
+    // fclose(file);
+    exit(ERR_IOERR);
+  }
+  buffer[bytesRead] = '\0';
+
+  fclose(file);
+  return buffer;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/** Read Lox script file and run it.
+ */
+static void runScript(const char* scriptPath)
+{
+  char* source = readFile(scriptPath);
+  InterpretResult result = interpret(source);
+  free(source);
+
+  if ( result == INTERPRET_COMPILE_ERROR ) exit(ERR_DATAERR);
+  if ( result == INTERPRET_RUNTIME_ERROR ) exit(ERR_SOFTWARE);
+}
+
 /*---------------------------------------------------------------------------*/
 
 int main(int argc, const char* argv[])
 {
   initVM();
 
-  Chunk chunk;
-  initChunk(&chunk);
-
-  // Add a constant to the chunk's constant pool
-  int constant = addConstant(&chunk, 1.2);
-  appendChunk(&chunk, OP_CONSTANT, 123);
-
-  // Write the one-byte constant index operand
-  appendChunk(&chunk, (uint8_t)constant, 123);
-
-  constant = addConstant(&chunk, 3.4);
-  appendChunk(&chunk, OP_CONSTANT, 123);
-  appendChunk(&chunk, (uint8_t)constant, 123);
-
-  appendChunk(&chunk, OP_ADD, 123);
-
-  constant = addConstant(&chunk, 5.6);
-  appendChunk(&chunk, OP_CONSTANT, 123);
-  appendChunk(&chunk, (uint8_t)constant, 123);
-
-  appendChunk(&chunk, OP_DIVIDE, 123);
-  appendChunk(&chunk, OP_NEGATE, 123);
-  appendChunk(&chunk, OP_RETURN, 123);
-
-  // disassembleChunk(&chunk, "test chunk");
-
-  interpret(&chunk);
+  if ( argc == 1 ) {
+    repl();
+  } else if ( argc == 2 ) {
+    runScript(argv[1]);
+  } else {
+    fprintf(stderr, "Usage: yaclox [src_file]\n");
+    exit(ERR_USAGE);
+  }
 
   freeVM();
-
-  freeChunk(&chunk);
 
   return 0;
 }

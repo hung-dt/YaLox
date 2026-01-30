@@ -4,6 +4,8 @@ add_executable(yaclox
     debug.c
     value.c
     vm.c
+    scanner.c
+    compiler.c
     main.c
 )
 

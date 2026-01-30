@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+/*---------------------------------------------------------------------------*/
+
 typedef double Value;
 
 typedef struct
@@ -11,6 +13,8 @@ typedef struct
   int size;
   Value* values;
 } ValueArray;
+
+/*---------------------------------------------------------------------------*/
 
 void initValueArray(ValueArray* array);
 void appendValueArray(ValueArray* array, Value value);
