@@ -39,7 +39,7 @@ endif()
 # Compiler configs
 #------------------------------------------------------------------------------
 if (NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD 23)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -50,7 +50,7 @@ if (MSVC)
     add_compile_options(/W4)
 else()
     # Additional warnings for other compilers like GCC or Clang
-    add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wnon-virtual-dtor)
+    add_compile_options(-Wall -Wextra -Wpedantic -Wconversion)
 endif()
 
 option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" FALSE)

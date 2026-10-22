@@ -51,8 +51,13 @@
 # Temporary folders
 build*/
 _build/
+bin/
+_bin/
+lib/
+_lib/
 temp/
 tmp/
+logs/
 .cache/
 
 # CMake user specific settings

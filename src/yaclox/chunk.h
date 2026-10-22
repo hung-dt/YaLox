@@ -3,7 +3,7 @@
 
 #include "value.h"
 
-// Define code representation
+// Define code representation, chunk, a sequence of bytecodes
 
 // Each instruction has a one-byte operation code (opcode)
 typedef enum

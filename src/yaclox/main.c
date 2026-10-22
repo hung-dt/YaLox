@@ -12,7 +12,7 @@
 static void repl()
 {
   char line[1024];
-  printf("YaClox - Yet another C Lox");
+  printf("YaClox - Yet another C Lox\n");
   for ( ;; ) {
     printf("> ");
 

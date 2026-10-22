@@ -1,24 +1,72 @@
 {
+    //
+    // ==========================================
+    // Editor & Text Formatting
+    // ==========================================
     "editor.formatOnSave": true,
     "editor.formatOnPaste": true,
+    "editor.formatOnType": false,
     "editor.inlayHints.enabled": "off",
-    "[cpp]": {
+    //
+    // ==========================================
+    // Look & Feel (Clutter-Free & Typography)
+    // ==========================================
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.cursorBlinking": "smooth",
+    "editor.bracketPairColorization.enabled": true,
+    // "editor.guides.bracketPairs": "active",
+    //
+    // ==========================================
+    // File Management & Auto-Save
+    // ==========================================
+    // "files.autoSave": "onWindowChange",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.eol": "\n",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.exe": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true
+    },
+    "files.associations": {
+        "*.c": "c"
+    },
+    "explorer.compactFolders": true,
+    //
+    // ==========================================
+    // Window & Workbench UI Tuning
+    // ==========================================
+    "window.title": "${activeEditorMedium}${separator}${rootName}",
+    "editor.linkedEditing": true,
+    "editor.wordWrap": "on",
+    //
+    // ==========================================
+    // Language Specific Overrides
+    // ==========================================
+    "[c][cpp]": {
         "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
         "editor.tabSize": 2
     },
     "[cmake]": {
         "editor.tabSize": 4
     },
+    //
+    // ==========================================
+    // Extensions
+    // ==========================================
     // disable the Microsoft C/C++ Intellisense and use clangd instead
     "C_Cpp.intelliSenseEngine": "disabled",
     "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
-    "cmake.generator": "Ninja",
     "cmake.configureOnOpen": false,
-    "cmake.configureArgs": [
-        "-DBUILD_TESTS=ON"
-    ],
-    // do not auto include
+    "cmake.modifyLists.addNewSourceFiles": "no",
     "clangd.arguments": [
-        "--header-insertion=never"
-    ]
+        "--background-index", // Index project in the background for instant navigation
+        "--query-driver=E:\\Dev\\Tools\\mingw64-gcc-15.3.0-r1\\bin\\g++.exe,E:\\Dev\\Tools\\mingw64-gcc-15.3.0-r1\\bin\\gcc.exe,/usr/bin/g++,/usr/bin/gcc",
+        "--clang-tidy", // Turn on real-time linting checks
+        "-j=4", // Allocate compiler threads (adjust to your CPU cores)
+        "--header-insertion=never" // do not auto include
+    ],
 }

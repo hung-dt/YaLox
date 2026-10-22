@@ -7,6 +7,7 @@
 
 typedef double Value;
 
+/** Constant pool */
 typedef struct
 {
   int capacity;
