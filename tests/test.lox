@@ -1,0 +1,17 @@
+class Foo {
+  init() {
+    print this;   // <Foo instance>
+  }
+}
+
+var foo = Foo();    // <Foo instance>
+print foo.init();   // <Foo instance>
+
+class A {
+  init() {
+    return;
+  }
+}
+
+// empty return from init() returns "this"
+print A().init();   // print <A instance>

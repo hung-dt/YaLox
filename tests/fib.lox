@@ -1,0 +1,18 @@
+fun durationFrom(s) {
+    print clock() - s;
+}
+
+// recursive function to calculate Fibonacci numbers
+fun fib(n) {
+  if (n < 2) return n;
+  return fib(n - 1) + fib(n - 2);
+}
+
+print "Fibonacci numbers:";
+
+var start = clock();
+// for (var i = 0; i < 30; i = i + 1) {
+//   print fib(i);
+// }
+print fib(40);
+durationFrom(start);

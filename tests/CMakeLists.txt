@@ -13,3 +13,8 @@ add_executable(test_interpreter test_interpreter.cpp)
 target_include_directories(test_interpreter PRIVATE ${PROJECT_SOURCE_DIR}/src/yalox)
 target_link_libraries(test_interpreter PRIVATE yalox_lib)
 add_test(NAME TestInterpreter COMMAND test_interpreter)
+
+add_executable(test_countedptr test_countedptr.cpp)
+target_include_directories(test_countedptr PRIVATE ${PROJECT_SOURCE_DIR}/src/yalox)
+target_link_libraries(test_countedptr PRIVATE yalox_lib)
+add_test(NAME Test_countedptr COMMAND test_countedptr)

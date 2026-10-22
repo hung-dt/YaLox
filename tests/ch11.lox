@@ -1,0 +1,25 @@
+var a = "outer";
+{
+  var a = "inner";
+  print a;  // inner
+}
+
+{
+    var a = a;  // Error
+}
+
+var a = "global";
+{
+    fun showA() {
+        print a;
+    }
+
+    showA();    // global
+    var a = "block";
+    showA();    // block
+}
+
+fun bad() {
+    var v = "first";
+    var v = "second";   // error
+}

@@ -241,7 +241,11 @@ if __name__ == "__main__":
         {"name": "Block", "params": [["statements", "std::vector<StmtPtr>"]]},
         {
             "name": "Class",
-            "params": [["name", "Token"], ["methods", "std::vector<StmtPtr>"]],
+            "params": [
+                ["name", "Token"],
+                ["superclass", "VariableExpr"],
+                ["methods", "std::vector<StmtPtr>"],
+            ],
         },
         {"name": "Expr", "params": [["expression", "ExprPtr"]]},
         {

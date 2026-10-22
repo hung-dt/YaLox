@@ -469,6 +469,17 @@ void Interpreter::visitBlockStmt(BlockStmt& stmt)
  */
 void Interpreter::visitClassStmt(ClassStmt& stmt)
 {
+  // check if the superclass is actually a class
+  LoxObject superclass;
+  if ( !stmt.superclass.name.lexeme().empty() ) {
+    superclass = evaluate(stmt.superclass);
+    if (
+      !superclass ||
+      !std::holds_alternative<LoxCallable>(superclass.value()) ) {
+      throw RuntimeError(stmt.superclass.name, "Superclass must be a class.");
+    }
+  }
+
   LoxCallable lc;
   lc.arity = 0;
   lc.name = stmt.name.lexeme();

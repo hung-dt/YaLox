@@ -1,0 +1,79 @@
+class DevonshireCream {
+  serveOn() {
+    return "Scones";
+  }
+}
+
+print DevonshireCream; // Prints "DevonshireCream".
+
+class Breakfast {
+  cook() {
+    print "Eggs a-fryin'!";
+  }
+
+  serve(who) {
+    print "Enjoy your breakfast, " + who + ".";
+  }
+}
+
+print Breakfast;    // Breakfast
+
+var bf = Breakfast();
+print bf; // Breakfast instance
+
+bf.id = 42;
+print bf.id; // 42
+
+bf.description = "A hearty breakfast.";
+print bf.description; // A hearty breakfast.
+
+bf.cook();          // Eggs a-fryin'!
+bf.serve("Bob");  // Enjoy your breakfast, Bob.
+
+var method = bf.serve;
+method("Alice");    // Enjoy your breakfast, Alice.
+
+class Box{}
+
+fun notMethod(arg) {
+  print "called function with " + arg;
+}
+
+var box = Box();
+box.func = notMethod;
+box.func("an argument"); // called function with an argument
+
+class Cake {
+  taste() {
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
+  }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste(); // Prints "The German chocolate cake is delicious!".
+
+class Thing {
+  getCallback() {
+    fun localFunction() {
+      print this;
+    }
+
+    return localFunction;
+  }
+}
+
+var callback = Thing().getCallback();
+callback(); // Prints "Thing instance".
+
+class A {
+    init(n) {
+        print "A initialized";
+        // print this;
+        this.name = n;
+    }
+}
+
+var a = A("test"); // Should print "A initialized"
+print a.name; // Should print "test"

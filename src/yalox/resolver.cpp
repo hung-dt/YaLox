@@ -133,6 +133,14 @@ void Resolver::visitClassStmt(ClassStmt& stmt)
   declare(stmt.name);
   define(stmt.name);
 
+  const auto superClassName = stmt.superclass.name;
+  if ( !superClassName.lexeme().empty() ) {
+    if ( superClassName.lexeme() == stmt.name.lexeme() ) {
+      YaLox::error(superClassName, "A class cannot inherit from itself.");
+    }
+    resolve(stmt.superclass);
+  }
+
   // Before we step in and start resolving the method bodies, we push a new
   // scope and define "this" in it as if it were a variable. This lets us treat
   // "this" just like any other local variable when we resolve it in the method.

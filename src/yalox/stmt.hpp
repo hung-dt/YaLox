@@ -83,13 +83,14 @@ public:
 class ClassStmt : public Stmt
 {
 public:
-  ClassStmt(Token name, std::vector<StmtPtr> methods);
+  ClassStmt(Token name, VariableExpr superclass, std::vector<StmtPtr> methods);
 
   void resolve(Resolver&) override;
 
   void execute(Interpreter&) override;
 
   Token name;
+  VariableExpr superclass;
   std::vector<StmtPtr> methods;
 };
 

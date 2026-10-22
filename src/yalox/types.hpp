@@ -14,6 +14,8 @@ class FunctionStmt;
 
 using LoxFunction = std::function<LoxObject(const std::vector<LoxObject>&)>;
 
+using LoxCallablePtr = counted_ptr<LoxCallable>;
+
 /*---------------------------------------------------------------------------*/
 
 /** Lox callable object can be a function or a class. If it is a function,
@@ -30,6 +32,8 @@ public:
   LoxFunction call;
 
   std::string name{};
+
+  LoxCallablePtr super_;
 
   // A class stores behavior (methods) through a map of method name to LoxObject
   // (LoxCallable) and are accessed through its instances.

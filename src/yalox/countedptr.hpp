@@ -8,6 +8,8 @@
  * DO NOT USE THIS FOR MULTI-THREADED APP. USE std::shared_ptr INSTEAD.
  */
 
+#include <iostream>
+
 template <typename T>
 class counted_ptr
 {
@@ -15,7 +17,10 @@ public:
   counted_ptr(T* p = nullptr)
     : ptr_(nullptr)
   {
-    if ( p ) ptr_ = new pointer(p);
+    if ( p ) {
+      ptr_ = new pointer(p);
+      // std::cout << "++ [" << typeid(T).name() << "] @" << p << "\n";
+    }
   }
 
   counted_ptr(const counted_ptr& other)
@@ -85,6 +90,7 @@ private:
   {
     if ( ptr_ ) {
       if ( --(ptr_->count) == 0 ) {
+        // std::cout << "-- [" << typeid(T).name() << "] @" << ptr_->p << "\n";
         delete ptr_->p;
         delete ptr_;
       }

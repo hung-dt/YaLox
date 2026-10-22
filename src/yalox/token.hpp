@@ -37,6 +37,7 @@ enum class TokenType
 class Token
 {
 public:
+  Token() = default;
   Token(TokenType type, std::string lexeme, LoxObject literal, int line);
 
   std::string toString() const;
@@ -47,10 +48,10 @@ public:
   int line() const;
 
 private:
-  const TokenType type_;
-  const std::string lexeme_;
-  const LoxObject literal_;
-  const int line_;
+  TokenType type_{ TokenType::EoF };
+  std::string lexeme_{};
+  LoxObject literal_{};
+  int line_{};
 };
 
 /*---------------------------------------------------------------------------*/

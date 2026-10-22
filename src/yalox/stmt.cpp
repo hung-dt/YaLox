@@ -28,8 +28,12 @@ void BlockStmt::execute(Interpreter& interpreter)
 
 /*---------------------------------------------------------------------------*/
 
-ClassStmt::ClassStmt(Token name, std::vector<StmtPtr> methods)
+ClassStmt::ClassStmt(
+  Token name,
+  VariableExpr superclass,
+  std::vector<StmtPtr> methods)
   : name(std::move(name))
+  , superclass(std::move(superclass))
   , methods(std::move(methods))
 {
 }
